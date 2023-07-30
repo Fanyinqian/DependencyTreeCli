@@ -1,0 +1,33 @@
+{
+  "name": "dependencytreecli",
+  "version": "1.0.0",
+  "description": "A Tool for Analyzing Package Dependencies ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fanyinqian/DependencyTreeCli.git"
+  },
+  "author": "javaTribe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fanyinqian/DependencyTreeCli/issues"
+  },
+  "homepage": "https://github.com/Fanyinqian/DependencyTreeCli#readme",
+  "bin": {
+    "dependency-tree-cli": "./bin/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "typescript": "^5.1.6"
+  },
+  "private": false
+}
