@@ -13,11 +13,9 @@ const Action = {
         const res = await Loading()
         // 打开内置网页
         console.log(`${chalk.green.bold('➜')}  Open:  ${chalk.blueBright.bold(`http://localhost/${HOST}`)}`)
-        console.log(`${chalk.green.bold('➜')}  press  dependecy-tree-cli -h to show help`)
+        console.log(`${chalk.green.bold('➜')}  press  ${chalk.bold(`dependecy-tree-cli -h`)} to show help`)
     },
     depth(n: Array<string>) {
-        console.log('111');
-        
         const lastElement = n[n.length-1]
         let depth:number = parseInt(lastElement.charAt(lastElement.length - 1));
 
