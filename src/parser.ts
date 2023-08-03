@@ -52,14 +52,14 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
   if (depth != null && depth >= 0) --depth;
   //出现已存在的包时结束递归
   if (dependencyTreeMap.has(packName)) {
-    console.log("------------------------error--------------------------");
-    console.log(`已存在包${packName}`);
-    console.log("------------------------error--------------------------");
+    // console.log("------------------------error--------------------------");
+    // console.log(`已存在包${packName}`);
+    // console.log("------------------------error--------------------------");
     return;
   }
   //获取依赖包文件的数据
   let packageData: packageObj = (await readPackageJson(packName)) as packageObj;
-  if (packName != PrimaryKey) console.log(`包${packName}解析成功!`);
+  // if (packName != PrimaryKey) console.log(`包${packName}解析成功!`);
   //获取依赖包数据的dependencies数组
   let dependencies: string[] = Array.from(
     Object.keys(packageData.dependencies || {})
@@ -92,14 +92,14 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
  */
 const dependencyTreeParser = async (depth: number) => {
   clearDependenceTreeMap();
-  console.log("开始解析依赖包······");
+  // console.log("开始解析依赖包······");
   await buildDependencyMap(PrimaryKey, depth);
   myCache.set(PrimaryKey, getDependenceTreeMap(), cacheTime);
   saveDependencyTreeJson("/dist/test", true);
   const staticPath = path.join(__dirname.replace(/\\src|\\lib/g, ""), "dist");
-  app.use(express.static(staticPath)).listen(8080, () => {
-    exec("start http://127.0.0.1:8080/index.html");
-    console.log("依赖关系图：http://127.0.0.1:8080/index.html");
+  app.use(express.static(staticPath)).listen(8243, () => {
+    exec("start http://127.0.0.1:8243/index.html");
+    // console.log("依赖关系图：http://127.0.0.1:8080/index.html");
   });
 };
 
@@ -117,7 +117,7 @@ const getDependenceTreeMap = (): Map<string, dependencyTree> => {
 const clearDependenceTreeMap = () => {
   dependencyTreeMap.clear();
   if (myCache.has(PrimaryKey)) myCache.del(PrimaryKey);
-  console.log("初始化数据成功！");
+  // console.log("初始化数据成功！");
 };
 
 /**

@@ -1,3 +1,4 @@
+//@ts-ignore
 const chalk = require('chalk')
 const VERSION:string = '1.0.0'
 const BRAND_LOGO:string = `
