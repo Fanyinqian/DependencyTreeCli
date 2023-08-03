@@ -14,7 +14,7 @@ const Action = {
     // 打开内置网页
     console.log(
       `${chalk.green.bold("➜")}  Open:  ${chalk.blueBright.bold(
-        `http://localhost/${HOST}`
+        `http://localhost:${HOST}`
       )}`
     );
     console.log(
