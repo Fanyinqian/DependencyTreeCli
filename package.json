@@ -1,6 +1,6 @@
 {
   "name": "dependencytreecli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Tool for Analyzing Package Dependencies ",
   "main": "index.js",
   "scripts": {
