@@ -1,2 +1,3 @@
 node_modules/
 lib/
+/web/node_modules
