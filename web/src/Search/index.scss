@@ -1,7 +1,27 @@
-.search{
+.myComponent {
+  position: absolute;
+  right: 2%;
+  top: 1%;
+  opacity: 0;
+  transform: translateY(-50px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+
+  &.show {
+    opacity: 1;
+    transform: translateY(10px);
+
+    .search {
+      transform: translateY(10px);
+    }
+  }
+}
+
+.search {
   position: absolute;
   right: 2%;
   top: 4%;
+  transform: translateY(0);
+  transition: all 1.5s;
 
   .searchCon{
     padding: 10px 10px;
@@ -40,7 +60,7 @@
 
   .font{
     float: right;
-    margin-top: -30px;
+    margin-top: 6px;
     position: relative;
     z-index: 111;
   }

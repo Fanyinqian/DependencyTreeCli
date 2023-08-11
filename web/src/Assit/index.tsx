@@ -1,30 +1,21 @@
-import * as React from 'react';
+import React, { useState } from "react";
 import './index.scss'
-
-interface AssitProps {
-  
-}
- 
-interface AssitState {
-  
-}
- 
-class Assit extends React.Component<AssitProps, AssitState> {
-  // constructor(props: AssitProps) {
-  //   super(props);
-  //   this.state = { :  };
-  // }
-  render() { 
-    return ( 
-      <>
-        <div className="assit">
+import ShortcutKeys from "../ShortcutKeys";
+const Assit = () => {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const handleAnimation = () => {
+    setIsAnimating(!isAnimating);
+  };
+  return (
+    <div>
+      <div className="assit">
           <div className="assitCon">
-            
+            <i className='iconfont'  onClick={handleAnimation}>&#xe623;</i>
           </div>
-        </div>
-      </>
-     );
-  }
-}
- 
+      </div>
+      <ShortcutKeys isAnimating={isAnimating}></ShortcutKeys>
+    </div>
+  );
+};
+
 export default Assit;

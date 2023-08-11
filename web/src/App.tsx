@@ -1,14 +1,14 @@
 // import { useState } from 'react'
 import './App.scss'
-import Search from './Search'
 import Assit from './Assit'
+import ShortCut from './Search/ShortCut'
 
 function App() {
 
   return (
     <>
     <canvas className='canvas'></canvas>
-    <Search></Search>
+    <ShortCut></ShortCut>
     <Assit></Assit>
     </>
   )
