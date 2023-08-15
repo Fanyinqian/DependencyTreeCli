@@ -2,12 +2,13 @@
 import './App.scss'
 import Search from './Search'
 import Assit from './Assit'
-
+import RGClock from './RGClock';
 function App() {
 
   return (
-    <>
-    <canvas className='canvas'></canvas>
+      <>
+    <RGClock />
+    {/* <canvas className='canvas'></canvas> */}
     <Search></Search>
     <Assit></Assit>
     </>
