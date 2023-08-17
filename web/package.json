@@ -11,6 +11,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@antv/g6": "^4.8.21",
     "@types/react-router-dom": "^5.1.8",
     "babel-eslint": "^10.1.0",
     "eslint-plugin-react": "^7.33.1",

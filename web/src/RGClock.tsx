@@ -5,35 +5,19 @@ import type { RelationGraphExpose, RGNode, RGNodeSlotProps, RGOptions } from 're
 import JSON_data from '../public/data1.json'
 // NodeSlot 组件：这是一个函数式组件，根据节点的不同类型来渲染节点的样式。
 // 如果节点的 id 是 'current'，则渲染一个带渐变背景色的，否则渲染一个简单的圆形。
-const NodeSlot: React.FC<RGNodeSlotProps> = ({ node }) => {
-    if (node.id === 'current') {
-        return <div style={{ lineHeight: '24px', width: '100%', height: '100%', color: '#000000', borderRadius: '50%', boxSizing: 'border-box', background: 'linear-gradient(to right, #00FFFF, #FF00FF)' }}>{node.text}</div>
-    }
-    return <div style={{ lineHeight: '38px', width: '100%', height: '100%', color: '#000000', borderRadius: '50%', boxSizing: 'border-box' }}>{node.text}</div>
-}
+// const NodeSlot: React.FC<RGNodeSlotProps> = ({ node }) => {
+//     if (node.id === 'current') {
+//         return <div style={{ lineHeight: '38px', width: '100%', height: '100%', color: '#000000', borderRadius: '50%', boxSizing: 'border-box', background: 'linear-gradient(to right, #00FFFF, #FF00FF)' }}>{node.text}</div>
+//     }
+//     return <div style={{ lineHeight: '38px', width: '100%', height: '100%', color: '#000000', borderRadius: '50%', boxSizing: 'border-box' }}>{node.text}</div>
+// }
 interface JsonData {
     [key: string]: {
         dependencies: string[];
         // 其他属性
     };
 }
-interface NodeData {
-    id: string;
-    text: string;
-    nodeShape: number;
-    // 其他属性
-}
-interface LinkData {
-    from: string;
-    to: string;
-    // 其他属性
-}
 
-interface LinkData {
-    from: string;
-    to: string;
-    // 其他属性
-}
 const processJsonData = (jsonData:JsonData) => {
     const nodesData = [{ id: 'treeRoot', text: 'treeRoot', nodeShape: 1 }];
     const linksData: { from: string; to: string; }[] = [];
@@ -68,7 +52,6 @@ const processJsonData = (jsonData:JsonData) => {
 };
 
 // RGClock 组件：这是另一个函数式组件，它包含了关系图的主要逻辑。
-// 然后，它定义了一个 play 函数，用来控制中心节点的移动。
 // options 对象定义了关系图的一些配置，比如节点和连线的样式，布局方式等。
 const RGClock: React.FC = () => {
     // eeksRelationGraph$将被用作关系图实例的引用
@@ -77,7 +60,7 @@ const RGClock: React.FC = () => {
     useEffect(() => {
         const { nodesData, linksData } = processJsonData(JSON_data);
         const graphJsonData: any = {
-            rootId: 'treeRoot',
+            // rootId: 'treeRoot',
             nodes: nodesData,
             lines: linksData,
         };
@@ -91,9 +74,9 @@ const RGClock: React.FC = () => {
         //   setJsonData 用来设置关系图的初始数据
         //   graphJsonData 包含关系图的节点和连线数据
         //   
-        setTimeout(() => {
+        // setTimeout(() => {
             seeksRelationGraph$.current.setJsonData(graphJsonData, true)
-        }, 1000)
+        // }, 1000)
     }, [])
     //   const play = (targetNodeNumber:number) => {
     //     if (targetNodeNumber > 60) targetNodeNumber = 1;
@@ -109,17 +92,32 @@ const RGClock: React.FC = () => {
     //     setTimeout(()=>{play(targetNodeNumber + 1)}, 1000)
     //   }
     const options: RGOptions = {
-        // showDebugPanel: true,//这是一个布尔值，表示是否显示关系图的调试面板。
-        lineUseTextPath: true,//表示关系图中的连线是否使用文本路径来显示。
+        showDebugPanel: false,//这是一个布尔值，表示是否显示关系图的调试面板。
+        // lineUseTextPath: false,//表示关系图中的连线是否使用文本路径来显示。
+        allowSwitchLineShape: false,
+        allowShowMiniToolBar: false,
         defaultLineShape: 5,//表示关系图中连线的默认形状。
         placeSingleNode: false,//表示当只有一个节点时，是否居中显示。
-        moveToCenterWhenRefresh: true,//表示是否在刷新关系图时将视图移动到中心。
-        zoomToFitWhenRefresh: true,//是一个布尔值，表示是否在刷新关系图时自动缩放以适应视图。
+        // moveToCenterWhenRefresh: true,//表示是否在刷新关系图时将视图移动到中心。
+        // zoomToFitWhenRefresh: true,//是一个布尔值，表示是否在刷新关系图时自动缩放以适应视图。
+        // layouts: [
+        //     {
+        //         label: '自动布局',
+        //         layoutName: "force",
+        //         // layoutClassName: "seeks-layout-force",
+        //     }
+        // ],
+         // 布局方式：自由布局
         layouts: [
-            {
-                layoutName: "force",
-                layoutClassName: "seeks-layout-force",
-            }
+          {
+            layoutName: "force",
+                // "layoutClassName": "seeks-layout-force",
+            label: "中心",
+    //   "layoutName": "force",
+      layoutClassName: "seeks-layout-center",
+    //   "defaultExpandHolderPosition": "hide",
+    //   defaultJunctionPoint: "border",
+          },
         ],
         defaultNodeWidth: 150,//默认宽度
         defaultNodeHeight: 40,
@@ -175,7 +173,7 @@ const RGClock: React.FC = () => {
         <div style={{ height: 800, width: '98vw', border: '#000000 solid 3px' }}>
             <RelationGraph ref={seeksRelationGraph$}
                 options={options}
-                nodeSlot={NodeSlot}
+                // nodeSlot={NodeSlot}
                 on-node-click="handleNodeClick"
                 onNodeClick={handleNodeClick} // 将事件处理函数传递给 onNodeClick 属性
                 />
