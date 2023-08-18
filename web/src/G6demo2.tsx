@@ -32,7 +32,7 @@ const processJsonData = (jsonData: JsonData) => {
     findNodes("treeRoot");
     console.log(nodes);
 
-    let edges: { source: any; target: string; type: 'can-running' }[] = [];
+    let edges: { source: any; target: string; }[] = [];
     const getEdges = () => {
         for (let item of Object.values(jsonData)) {
             // console.log(item);
@@ -40,7 +40,6 @@ const processJsonData = (jsonData: JsonData) => {
                 edges.push({
                     source: item.name,
                     target: v,
-                    type: 'can-running'
                 });
             }
         }
@@ -123,41 +122,7 @@ G6.registerEdge(
     },
     'cubic', // extend the built-in edge 'cubic'
 );
-G6.registerEdge(
-    'can-running',
-    {
-        setState(name, value, item: any) {
-            const shape = item.get('keyShape');
-            if (name === 'running') {
-                if (value) {
-                    let index = 0;
-                    shape.animate(
-                        () => {
-                            index++;
-                            if (index > 9) {
-                                index = 0;
-                            }
-                            const res = {
-                                lineDash: Number,
-                                lineDashOffset: -index,
-                            };
-                            // return the params for this frame
-                            return res;
-                        },
-                        {
-                            repeat: true,
-                            duration: 3000,
-                        },
-                    );
-                } else {
-                    shape.stopAnimate();
-                    shape.attr('lineDash', null);
-                }
-            }
-        },
-    },
-    'cubic-horizontal',
-);
+
 const demoGraph = () => {
     console.log("youjici???????????????????????????");
 
@@ -165,6 +130,7 @@ const demoGraph = () => {
     let graphRef = React.useRef<Graph | undefined>(undefined);
 
     useEffect(() => {
+        let selectNode: any = { id: "treeRoot", label: "treeRoot" };
         if (graphRef.current || !containerRef.current) return;
         const graph = new G6.Graph({
             container: containerRef.current,
@@ -174,7 +140,7 @@ const demoGraph = () => {
                 linkDistance: 300, // 指定边距离为100
                 nodeSize: 150,
             },
-            width: 1800,
+            width: 1618.5,
             height: 1000,
             defaultNode: {
                 type: 'rect',
@@ -219,6 +185,19 @@ const demoGraph = () => {
             // plugins: [minimap]
             // 定义插件
             plugins: [tooltip],//悬浮显示信息  暂时是undefined
+            edgeStateStyles: {
+                // 二值状态 running 为 true 时的样式
+                running: {
+                    // keyShape 的状态样式
+                    stroke: '#d6e4ff',
+                    // fill: '#000',
+                    lineWidth: 2,
+                    animation: 'ant-line 30s infinite linear',
+                }
+            },
+            nodeStateStyles: {
+
+            }
             // defaultNode: {
             //     type: 'node',
             //     labelCfg: {
@@ -259,19 +238,39 @@ const demoGraph = () => {
             console.log(e.item);
 
         });
+        // 鼠标悬浮节点
         graph.on('node:mouseenter', (ev) => {
+            // const nodeItem = ev.item // 获取被点击的节点元素对象
+            // console.log(nodeItem);
             const node = ev.item;
-            console.log(ev);
-
             const edges = node?._cfg?.edges;
-            edges.forEach((edge: any) => graph.setItemState(edge, 'running', true));
+            edges.forEach((edge: any) => {
+                graph.setItemState(edge, 'running', true)
+            });
         });
+        // 鼠标离开悬浮节点
         graph.on('node:mouseleave', (ev) => {
+            // console.log(ev);
             const node = ev.item;
-            console.log(node);
+            // console.log(node);
             const edges = node?._cfg?.edges;
             edges.forEach((edge: any) => graph.setItemState(edge, 'running', false));
         });
+        // 单击节点
+        graph.on('node:click', (ev) => {
+            console.log('单击', ev);
+            const node: any = ev.item;
+            // selectNode = node;
+            // graph.setItemState(selectNode, 'test', true);
+            // }
+            console.log(node);
+            console.log(selectNode);
+        })
+        // 点击画布
+        graph.on('node:canvas', (ev) => {
+            console.log("点击画布", ev);
+
+        })
         console.log(containerRef);
 
         if (typeof window !== "undefined")
@@ -292,37 +291,6 @@ const demoGraph = () => {
         graphRef.current = graph;
     }, [])
 
-
-
-    // const handleNodeClick = (nodeObject: any, event: MouseEvent | TouchEvent) => {
-    //     console.log('Node clicked:', nodeObject, event);
-    //     // console.log(seeksRelationGraph$);
-    //     const allLinks = graphRef?.current.getLinks();
-    //     allLinks.forEach((link: any) => {
-    //         // 还原所有样式
-    //         link.relations.forEach((line: any) => {
-    //             line.color = "#ccc";
-    //             line.fontColor = "#ccc"
-    //             line.lineWidth = 2;
-    //         });
-    //     });
-    //     // 让与{nodeObject}相关的所有连线高亮
-    //     allLinks
-    //         .filter(
-    //             (link: any) => link.fromNode === nodeObject || link.toNode === nodeObject
-    //         )
-    //         .forEach((link: any) => {
-    //             link.relations.forEach((line: any) => {
-    //                 console.log("line:", line);
-    //                 line.color = "#ff0000";
-    //                 line.fontColor = "#ff0000";
-    //                 line.lineWidth = 3;
-    //             });
-    //         });
-    //     graphRef.current.getInstance().dataUpdated();
-    //     return true;
-    //     // 在这里可以添加你的自定义逻辑
-    // };
     return (<>
         <h1>demo2-tsx</h1>
         <div ref={containerRef} style={{ border: "3px solid black" }}></div>
