@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
+// import { log } from 'console';
 interface JsonData {
     [key: string]: {
         name: any;
@@ -8,11 +9,18 @@ interface JsonData {
         // 其他属性
     };
 }
+/**
+ 
+ * 点击节点相关节点高亮 -- zh
+ * 点击边--两边节点高亮 -- zh
+ * 搜索 -- ww
+ * 样式--：状态后：edgeStateStyles--默认：defaultEdge -- ww
+ * any改掉 -- 幸运儿
+ * 数据processJsonData plugins: [tooltip],//悬浮显示信息 --kx
+ * 鸟瞰图--kx
+ * 
+ */
 
-// let res = await fetch("./test.json", {
-//     method: "GET",
-//         mode: "cors", // 设置跨域模式
-//     })
 // 数据
 const processJsonData = (jsonData: JsonData) => {
     let tmp = new Map();
@@ -66,7 +74,7 @@ const processJsonData = (jsonData: JsonData) => {
 //     type: 'delegate',
 // });
 
-// 内置高亮节点
+// 悬浮节点 出现信息
 const tooltip = new G6.Tooltip({
     offsetX: 10,
     offsetY: 10,
@@ -92,40 +100,10 @@ const tooltip = new G6.Tooltip({
     },
 });
 //虚线运动
-G6.registerEdge(
-    'line-dash',
-    {
-        afterDraw(cfg, group: any) {
-            // get the first shape in the group, it is the edge's path here=
-            const shape = group.get('children')[0];
-            let index = 0;
-            // Define the animation
-            shape.animate(
-                () => {
-                    index++;
-                    if (index > 9) {
-                        index = 0;
-                    }
-                    const res = {
-                        lineDash: Number,
-                        lineDashOffset: -index,
-                    };
-                    // returns the modified configurations here, lineDash and lineDashOffset here
-                    return res;
-                },
-                {
-                    repeat: true, // whether executes the animation repeatly
-                    duration: 3000, // the duration for executing once
-                },
-            );
-        },
-    },
-    'cubic', // extend the built-in edge 'cubic'
-);
+
+
 
 const demoGraph = () => {
-    console.log("youjici???????????????????????????");
-
     const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
 
@@ -141,14 +119,15 @@ const demoGraph = () => {
                 nodeSize: 150,
             },
             width: 1618.5,
-            height: 1000,
+            height: 800,
+            // 基础的节点
             defaultNode: {
                 type: 'rect',
                 size: 85,
                 style: {
                     width: 120,
                     height: 40,
-                    fill: '#ffffff',
+                    fill: '#fff',
                     stroke: '#3e6f81',
                     padding: [2, 3, 2, 3],
                     radius: 2,
@@ -180,7 +159,7 @@ const demoGraph = () => {
                 }
             },
             modes: {
-                default: ["drag-canvas", "zoom-canvas", 'activate-relations', 'click-select'],
+                default: ["drag-canvas", "zoom-canvas", 'activate-relations'],
             },
             // plugins: [minimap]
             // 定义插件
@@ -196,6 +175,41 @@ const demoGraph = () => {
                 }
             },
             nodeStateStyles: {
+                active: {
+                    "fill": "rgb(247, 250, 255)",
+                    "stroke": "rgb(95, 149, 255)",
+                    "lineWidth": 2,
+                    "shadowColor": "rgb(95, 149, 255)",
+                    "shadowBlur": 10
+                },
+                selected: {
+                    fill: "rgb(255, 255, 255)",
+                    stroke: "rgb(95, 149, 255)",
+                    lineWidth: 4,
+                    shadowColor: "rgb(95, 149, 255)",
+                    shadowBlur: 10,
+                    "text-shape": {
+                        fontWeight: 500
+                    }
+                },
+                highlight: {
+                    "fill": "rgb(223, 234, 255)",
+                    "stroke": "#4572d9",
+                    "lineWidth": 2,
+                    "text-shape": {
+                        "fontWeight": 500
+                    }
+                },
+                inactive: {
+                    "fill": "rgb(247, 250, 255)",
+                    "stroke": "rgb(191, 213, 255)",
+                    "lineWidth": 1
+                },
+                disable: {
+                    "fill": "rgb(250, 250, 250)",
+                    "stroke": "rgb(224, 224, 224)",
+                    "lineWidth": 1
+                }
 
             }
             // defaultNode: {
@@ -258,13 +272,15 @@ const demoGraph = () => {
         });
         // 单击节点
         graph.on('node:click', (ev) => {
-            console.log('单击', ev);
-            const node: any = ev.item;
-            // selectNode = node;
-            // graph.setItemState(selectNode, 'test', true);
-            // }
-            console.log(node);
-            console.log(selectNode);
+            // 先将所有当前是 click 状态的节点置为非 click 状态
+            const clickNodes = graph.findAllByState('node', 'selected');
+            clickNodes.forEach((cn) => {
+                graph.setItemState(cn, 'selected', false);
+            });
+            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
+            graph.setItemState(nodeItem, 'selected', true); // 设置当前
+            console.log(nodeItem.getEdges);
+
         })
         // 点击画布
         graph.on('node:canvas', (ev) => {
