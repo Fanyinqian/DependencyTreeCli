@@ -108,7 +108,7 @@ const demoGraph = () => {
     let graphRef = React.useRef<Graph | undefined>(undefined);
 
     useEffect(() => {
-        let selectNode: any = { id: "treeRoot", label: "treeRoot" };
+        // let selectNode: any = { id: "treeRoot", label: "treeRoot" };
         if (graphRef.current || !containerRef.current) return;
         const graph = new G6.Graph({
             container: containerRef.current,
@@ -172,6 +172,11 @@ const demoGraph = () => {
                     // fill: '#000',
                     lineWidth: 2,
                     animation: 'ant-line 30s infinite linear',
+                },
+                clicked: {
+                    // lineWidth: 3,
+                    fill: "red",
+                    opacity: 0.3
                 }
             },
             nodeStateStyles: {
@@ -182,8 +187,10 @@ const demoGraph = () => {
                     "shadowColor": "rgb(95, 149, 255)",
                     "shadowBlur": 10
                 },
+                // 点击节点后 节点边框变大 ....
                 selected: {
-                    fill: "rgb(255, 255, 255)",
+                    "fill": "rgb(223, 234, 255)",
+                    // fill: "rgb(255, 255, 255)",
                     stroke: "rgb(95, 149, 255)",
                     lineWidth: 4,
                     shadowColor: "rgb(95, 149, 255)",
@@ -192,6 +199,7 @@ const demoGraph = () => {
                         fontWeight: 500
                     }
                 },
+                // 高亮
                 highlight: {
                     "fill": "rgb(223, 234, 255)",
                     "stroke": "#4572d9",
@@ -212,14 +220,6 @@ const demoGraph = () => {
                 }
 
             }
-            // defaultNode: {
-            //     type: 'node',
-            //     labelCfg: {
-            //         style: { fill: '#000000A6', fontSize: 10 },
-            //     },
-            //     style: { stroke: '#72CC4A', width: 150 },
-            // },
-            // defaultEdge: { type: 'polyline' },
         });
         console.log(graph);
         console.log(G6);
@@ -228,13 +228,7 @@ const demoGraph = () => {
         // 结构数据
         console.log(JSON_data);
         const graphJsonData = processJsonData(JSON_data);
-        // const graphJsonData: any = {
-        //     // rootId: 'treeRoot',
-        //     nodes: nodesData,
-        //     edges: linksData,
-        // };
         console.log(graphJsonData);
-
         // 绑定数据
         graph.data(graphJsonData);
         // 渲染图
@@ -246,6 +240,7 @@ const demoGraph = () => {
         graph.on("node:drag", function (e) {
             refreshDragedNodePosition(e);
         });
+        // 节点移动
         graph.on("node:dragend", function (e) {
             // e.item.get("model").fx = null;
             // e.item.get("model").fy = null;
@@ -273,19 +268,42 @@ const demoGraph = () => {
         // 单击节点
         graph.on('node:click', (ev) => {
             // 先将所有当前是 click 状态的节点置为非 click 状态
+            clear();
+            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
+            graph.setItemState(nodeItem, 'selected', true); // 设置当前
+            const edges = nodeItem.getEdges();
+            edges.forEach((edge: any) => {
+                graph.setItemState(edge, 'clicked', true);
+            })
+            const Nodes = nodeItem.getNeighbors();
+            Nodes.forEach((node: any) => {
+                graph.setItemState(node, 'highlight', true);
+            })
+        })
+        // 清空所有的样式
+        const clear = function () {
             const clickNodes = graph.findAllByState('node', 'selected');
             clickNodes.forEach((cn) => {
                 graph.setItemState(cn, 'selected', false);
             });
-            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
-            graph.setItemState(nodeItem, 'selected', true); // 设置当前
-            console.log(nodeItem.getEdges);
-
-        })
+            const clickNodes2 = graph.findAllByState('node', 'highlight');
+            clickNodes2.forEach((node: any) => {
+                graph.setItemState(node, 'highlight', false);
+            })
+            const clickEdges = graph.findAllByState('edge', 'clicked');
+            clickEdges.forEach((cn) => {
+                graph.setItemState(cn, 'clicked', false);
+            });
+        }
         // 点击画布
-        graph.on('node:canvas', (ev) => {
-            console.log("点击画布", ev);
-
+        graph.on('canvas:click', (ev) => {
+            clear();
+        })
+        // 点击边
+        graph.on('edge:click', (ev) => {
+            clear();
+            const clickEdge: any = ev.item;
+            graph.setItemState(clickEdge, 'clicked', true);
         })
         console.log(containerRef);
 
