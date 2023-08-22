@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
-// import { log } from 'console';
+import './Search/index.scss'
 interface JsonData {
     [key: string]: {
         name: any;
@@ -10,7 +11,6 @@ interface JsonData {
     };
 }
 /**
- 
  * 点击节点相关节点高亮 -- zh
  * 点击边--两边节点高亮 -- zh
  * 搜索 -- ww
@@ -100,9 +100,6 @@ const tooltip = new G6.Tooltip({
     },
 });
 //虚线运动
-
-
-
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
@@ -118,8 +115,8 @@ const demoGraph = () => {
                 linkDistance: 300, // 指定边距离为100
                 nodeSize: 150,
             },
-            width: 1618.5,
-            height: 800,
+            width: containerRef.current.clientWidth-20,
+            height: containerRef.current.clientHeight-20,
             // 基础的节点
             defaultNode: {
                 type: 'rect',
@@ -166,48 +163,50 @@ const demoGraph = () => {
             plugins: [tooltip],//悬浮显示信息  暂时是undefined
             edgeStateStyles: {
                 // 二值状态 running 为 true 时的样式
+                // 线的样式
                 running: {
                     // keyShape 的状态样式
-                    stroke: '#d6e4ff',
+                    stroke: '#000',
                     // fill: '#000',
                     lineWidth: 2,
-                    animation: 'ant-line 30s infinite linear',
+                    animation: 'easeElasticIn 30s infinite linear',
                 }
             },
             nodeStateStyles: {
                 active: {
-                    "fill": "rgb(247, 250, 255)",
-                    "stroke": "rgb(95, 149, 255)",
+                    // "fill": "#000",
+                    "stroke": "#000",
                     "lineWidth": 2,
-                    "shadowColor": "rgb(95, 149, 255)",
-                    "shadowBlur": 10
+                    "shadowColor": "#fff",
+                    // "shadowBlur": 10,
+                    'color':'#fff'
                 },
                 selected: {
-                    fill: "rgb(255, 255, 255)",
-                    stroke: "rgb(95, 149, 255)",
+                    // fill: "rgb(255, 255, 255)",
+                    stroke: "#000",
                     lineWidth: 4,
-                    shadowColor: "rgb(95, 149, 255)",
-                    shadowBlur: 10,
+                    // shadowColor: "rgb(95, 149, 255)",
+                    // shadowBlur: 10,
                     "text-shape": {
                         fontWeight: 500
                     }
                 },
                 highlight: {
-                    "fill": "rgb(223, 234, 255)",
-                    "stroke": "#4572d9",
+                    // "fill": "rgb(223, 234, 255)",
+                    // "stroke": "#4572d9",
                     "lineWidth": 2,
                     "text-shape": {
                         "fontWeight": 500
                     }
                 },
                 inactive: {
-                    "fill": "rgb(247, 250, 255)",
-                    "stroke": "rgb(191, 213, 255)",
+                    // "fill": "rgb(247, 250, 255)",
+                    // "stroke": "rgb(191, 213, 255)",
                     "lineWidth": 1
                 },
                 disable: {
-                    "fill": "rgb(250, 250, 250)",
-                    "stroke": "rgb(224, 224, 224)",
+                    // "fill": "rgb(250, 250, 250)",
+                    // "stroke": "rgb(224, 224, 224)",
                     "lineWidth": 1
                 }
 
@@ -223,6 +222,16 @@ const demoGraph = () => {
         });
         console.log(graph);
         console.log(G6);
+
+
+
+
+
+        // 将 graph 传递给 Search 组件作为 prop
+        ReactDOM.render(<Search graph={graph} />, document.getElementById("search-container"));
+        
+
+
 
         // graph.registerNode()
         // 结构数据
@@ -305,13 +314,161 @@ const demoGraph = () => {
         console.log(containerRef);
         console.log(graphRef);
         graphRef.current = graph;
+        
     }, [])
-
     return (<>
-        <h1>demo2-tsx</h1>
-        <div ref={containerRef} style={{ border: "3px solid black" }}></div>
+        {/* <h1>demo2-tsx</h1> */}
+
+
+
+
+        <div id="search-container"></div>
+
+
+
+
+        <div ref={containerRef} style={{ width:'100%',height:'100vh' }}></div>
+        
     </>
     );
 }
+
+
+// 搜索部分
+interface SearchProps {
+    graph: Graph;
+  }
+  
+
+
+  const Search = ({ graph }: SearchProps) => {
+    const [searchText, setSearchText] = useState('');
+    const [searchResults, setSearchResults] = useState<string[]>([]);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const lastTargetNodeId = useRef<string | null>(null);
+  
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputText = e.target.value;
+      setSearchText(inputText);
+  
+      const data = processJsonData(JSON_data);
+      const targetNodes = data.nodes.filter((node) =>
+        node.label.includes(inputText)
+      );
+      const results = targetNodes.map((node) => node.id);
+      setSearchResults(results);
+      setSelectedIndex(-1);
+    };
+  
+    const handleSearch = () => {
+      let selectedNodeId = searchResults[selectedIndex];
+      if (!selectedNodeId && searchResults.length === 1) {
+        selectedNodeId = searchResults[0];
+      }
+  
+      if (selectedNodeId) {
+        if (lastTargetNodeId.current) {
+          // 取消上一个节点的样式
+          graph.updateItem(lastTargetNodeId.current, {
+            style: {
+              width: 120,
+              height: 40,
+              fill: '#fff',
+              stroke: '#3e6f81',
+              padding: [2, 3, 2, 3],
+              radius: 2,
+              lineWidth: 3,
+            },
+          });
+        }
+  
+        // 将目标节点居中显示
+        console.log('找到内容', selectedNodeId);
+        graph.focusItem(selectedNodeId);
+  
+        // 更改节点样式
+        graph.updateItem(selectedNodeId, {
+          style: {
+            width: 120,
+            height: 40,
+            fill: '#fff',
+            stroke: '#000',
+            padding: [2, 3, 2, 3],
+            radius: 2,
+            lineWidth: 3,
+          },
+        });
+  
+        lastTargetNodeId.current = selectedNodeId;
+      } else {
+        alert('未找到目标节点');
+      }
+    };
+  
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        handleSearch();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex > 0 ? prevIndex - 1 : searchResults.length - 1
+        );
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex < searchResults.length - 1 ? prevIndex + 1 : 0
+        );
+      }
+    };
+  
+    return (
+      <>
+        <div className='search'>
+          <div className='searchCon'>
+            <input
+              placeholder='输入搜索内容'
+              type='text'
+              value={searchText}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+            />
+            <div className='font'>
+              <i className='iconfont' onClick={handleSearch}>
+                &#xe61a;
+              </i>
+              <i className='iconfont'>&#xed1a;</i>
+            </div>
+          </div>
+          {searchResults.length > 0 && (
+            <div className='searchResults'>
+              {searchResults.map((result, index) => (
+                <div
+                  key={result}
+                  className={`resultItem ${
+                    index === selectedIndex ? 'selected' : ''
+                  }`}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    handleSearch();
+                  }}
+                >
+                  {result}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+    );
+  };
+  
+  
+  
+  
+
+
+
+
+
 
 export default demoGraph;

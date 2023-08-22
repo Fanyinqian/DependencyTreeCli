@@ -21,8 +21,6 @@ class Search extends React.Component<SearchProps, SearchState> {
               <input type="text" placeholder='输入搜索内容' />
               <div className="font">
                 <i className='iconfont'>&#xe61a;</i>
-                <i className='iconfont'>&#xe659;</i>
-                <i className='iconfont'>&#xe65c;</i>
                 <i className='iconfont'>&#xed1a;</i>
               </div>
           </div>
