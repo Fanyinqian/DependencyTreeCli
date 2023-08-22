@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
 import './Search/index.scss'
+import './side.scss'
 // 引入样式
 import './G6demo.scss'
 // import { log } from 'console';
@@ -11,6 +12,8 @@ interface JsonData {
         name: any;
         dependencies: string[];
         // 其他属性
+        version:string,
+        description:string
     };
 }
 /**
@@ -25,7 +28,7 @@ interface JsonData {
  */
 
 // 数据
-const processJsonData = (jsonData: any) => {
+const processJsonData = (jsonData: JsonData) => {
     let tmp = new Map();
     let nodes: any = [];
     nodes.push({
@@ -366,7 +369,7 @@ const demoGraph = () => {
 
 
         <div id="search-container"></div>
-
+        <Sidebar></Sidebar>
 
 
 
@@ -381,9 +384,6 @@ const demoGraph = () => {
 interface SearchProps {
     graph: Graph;
   }
-  
-
-
   const Search = ({ graph }: SearchProps) => {
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -504,12 +504,74 @@ interface SearchProps {
     );
   };
   
+  const Sidebar: React.FC = () => {
+    const [selectedItem, setSelectedItem] = useState('');
+    const [tooltipText, setTooltipText] = useState('');
   
+    const handleItemClick = (item: string) => {
+      setSelectedItem(item);
+    };
   
+    const handleMouseEnter = (text: string) => {
+      setTooltipText(text);
+    };
   
-
-
-
+    const handleMouseLeave = () => {
+      setTooltipText('');
+    };
+  
+    return (
+      <div className="sidebar">
+        {/* {tooltipText && <div className="tooltip">{tooltipText}</div>} */}
+        <ul>
+          <li
+            onClick={() => handleItemClick('Item 1')}
+            onMouseEnter={() => handleMouseEnter('Tooltip for Item 1')}
+            onMouseLeave={handleMouseLeave}
+            className={selectedItem === 'Item 1' ? 'active' : ''}
+          >
+            {tooltipText === 'Tooltip for Item 1' && (
+              <div className="tooltip-left">切换模式</div>
+            )}
+            <i className='iconfont'>&#xe6ab;</i>
+          </li>
+          <li
+            onClick={() => handleItemClick('Item 2')}
+            onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
+            onMouseLeave={handleMouseLeave}
+            className={selectedItem === 'Item 2' ? 'active' : ''}
+          >
+            {tooltipText === 'Tooltip for Item 2' && (
+              <div className="tooltip-left">切换dev</div>
+            )}
+            <i className='iconfont'>&#xe6c1;</i>
+          </li>
+          <li
+            onClick={() => handleItemClick('Item 3')}
+            onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
+            onMouseLeave={handleMouseLeave}
+            className={selectedItem === 'Item 3' ? 'active' : ''}
+          >
+            {tooltipText === 'Tooltip for Item 3' && (
+              <div className="tooltip-left">全屏显示</div>
+            )}
+            <i className='iconfont'>&#xec13;</i>
+          </li>
+          <li
+            onClick={() => handleItemClick('Item 4')}
+            onMouseEnter={() => handleMouseEnter('Tooltip for Item 4')}
+            onMouseLeave={handleMouseLeave}
+            className={selectedItem === 'Item 4' ? 'active' : ''}
+          >
+            {tooltipText === 'Tooltip for Item 4' && (
+              <div className="tooltip-left">鸟瞰图</div>
+            )}
+            <i className='iconfont'>&#xe71a;</i>
+          </li>
+        </ul>
+      </div>
+    );
+  };
 
 
 
