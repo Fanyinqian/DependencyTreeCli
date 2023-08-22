@@ -6,8 +6,10 @@
 
 .g6-minimap {
     background-color: #fff;
-    border: 1px solid #000;
+    // border: 1px solid #333;
     position: absolute;
-    bottom: 0;
-    left: 0;
+    bottom:4%;
+    right: 2%;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(35,37,42,.14);
 }

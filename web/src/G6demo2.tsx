@@ -412,17 +412,17 @@ interface SearchProps {
       if (selectedNodeId) {
         if (lastTargetNodeId.current) {
           // 取消上一个节点的样式
-          graph.updateItem(lastTargetNodeId.current, {
-            style: {
-              width: 120,
-              height: 40,
-              fill: '#fff',
-              stroke: '#3e6f81',
-              padding: [2, 3, 2, 3],
-              radius: 2,
-              lineWidth: 3,
-            },
-          });
+        //   graph.updateItem(lastTargetNodeId.current, {
+        //     style: {
+        //       width: 120,
+        //       height: 40,
+        //       fill: '#fff',
+        //       stroke: '#3e6f81',
+        //       padding: [2, 3, 2, 3],
+        //       radius: 2,
+        //       lineWidth: 3,
+        //     },
+        //   });
         }
   
         // 将目标节点居中显示
@@ -430,17 +430,17 @@ interface SearchProps {
         graph.focusItem(selectedNodeId);
   
         // 更改节点样式
-        graph.updateItem(selectedNodeId, {
-          style: {
-            // width: 120,
-            // height: 40,
-            fill: 'blue',
-            // stroke: '#000',
-            // padding: [2, 3, 2, 3],
-            // radius: 2,
-            // lineWidth: 3,
-          },
-        });
+        // graph.updateItem(selectedNodeId, {
+        //   style: {
+        //     // width: 120,
+        //     // height: 40,
+        //     // fill: 'blue',
+        //     // stroke: '#000',
+        //     // padding: [2, 3, 2, 3],
+        //     // radius: 2,
+        //     // lineWidth: 3,
+        //   },
+        // });
   
         lastTargetNodeId.current = selectedNodeId;
       } else {
