@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
+// 引入样式
+import './G6demo.scss'
 // import { log } from 'console';
 interface JsonData {
-    [key: string]: {
-        name: any;
-        dependencies: string[];
-        // 其他属性
-    };
+    // [key: string]: {
+    //     name: any;
+    //     dependencies: string[];
+    //     // 其他属性
+    // };
 }
 /**
  
@@ -22,15 +24,26 @@ interface JsonData {
  */
 
 // 数据
-const processJsonData = (jsonData: JsonData) => {
+const processJsonData = (jsonData: any) => {
     let tmp = new Map();
-    let nodes = [{ id: "treeRoot", label: "treeRoot" }];
+    let nodes: any = [];
+    nodes.push({
+        id: jsonData['treeRoot'].name,
+        label: jsonData['treeRoot'].name,
+        version: jsonData['treeRoot'].version,
+        description: jsonData['treeRoot'].description,
+    })
     let findNodes = (name: any) => {
         if (jsonData[name]) {
-            jsonData[name].dependencies.map((item) => {
+            jsonData[name].dependencies.map((item: any) => {
                 // 如果不存在才加进去
                 if (!tmp.has(item)) {
-                    nodes.push({ id: item, label: item });
+                    nodes.push({
+                        id: item,
+                        label: item,
+                        version: jsonData[name].version,
+                        description: jsonData[name].description
+                    });
                     findNodes(item);
                 }
                 tmp.set(item, 1);
@@ -62,6 +75,7 @@ const processJsonData = (jsonData: JsonData) => {
 
     return data;
 };
+
 // 边 tooltip 坐标
 // const [showNodeTooltip, setShowNodeTooltip] = useState(false);
 // const [nodeTooltipX, setNodeToolTipX] = useState(0);
@@ -90,18 +104,26 @@ const tooltip = new G6.Tooltip({
         outDiv.style.height = 'fit-content';
         const model = e.item?.getModel();
         if (e.item.getType() === 'node') {
-            outDiv.innerHTML = `${model.name}`;
+            outDiv.innerHTML = `
+                名称：${model.id}<br/>
+                版本：${model.version ? model.version : '暂无信息'}<br/>
+                描述：${model.description ? model.description : '暂无信息'}
+            `;
         } else {
             const source = e.item.getSource();
             const target = e.item.getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().name}<br/>去向：${target.getModel().name}`;
+            outDiv.innerHTML = `来源：${source.getModel().id}<br/>去向：${target.getModel().id}`;
         }
         return outDiv;
     },
 });
 //虚线运动
 
-
+// 鸟瞰图组件
+const minimap = new G6.Minimap({
+    size: [200, 200],
+    type: 'keyShape',
+});
 
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -118,8 +140,8 @@ const demoGraph = () => {
                 linkDistance: 300, // 指定边距离为100
                 nodeSize: 150,
             },
-            width: 1618.5,
-            height: 800,
+            width: containerRef.current.clientWidth - 10,
+            height: containerRef.current.clientHeight - 10,
             // 基础的节点
             defaultNode: {
                 type: 'rect',
@@ -163,7 +185,7 @@ const demoGraph = () => {
             },
             // plugins: [minimap]
             // 定义插件
-            plugins: [tooltip],//悬浮显示信息  暂时是undefined
+            plugins: [tooltip, minimap],//悬浮显示信息  暂时是undefined
             edgeStateStyles: {
                 // 二值状态 running 为 true 时的样式
                 running: {
@@ -323,11 +345,17 @@ const demoGraph = () => {
         console.log(containerRef);
         console.log(graphRef);
         graphRef.current = graph;
+
+
+
+        // graph.addPlugin(minimap);
+
     }, [])
 
+
     return (<>
-        <h1>demo2-tsx</h1>
-        <div ref={containerRef} style={{ border: "3px solid black" }}></div>
+        {/* <h1>demo2-tsx</h1> */}
+        <div ref={containerRef} style={{ width: '100%', height: '100vh' }}></div>
     </>
     );
 }
