@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
 import './Search/index.scss'
+// 引入样式
+import './G6demo.scss'
+// import { log } from 'console';
 interface JsonData {
     [key: string]: {
         name: any;
@@ -22,15 +25,26 @@ interface JsonData {
  */
 
 // 数据
-const processJsonData = (jsonData: JsonData) => {
+const processJsonData = (jsonData: any) => {
     let tmp = new Map();
-    let nodes = [{ id: "treeRoot", label: "treeRoot" }];
+    let nodes: any = [];
+    nodes.push({
+        id: jsonData['treeRoot'].name,
+        label: jsonData['treeRoot'].name,
+        version: jsonData['treeRoot'].version,
+        description: jsonData['treeRoot'].description,
+    })
     let findNodes = (name: any) => {
         if (jsonData[name]) {
-            jsonData[name].dependencies.map((item) => {
+            jsonData[name].dependencies.map((item: any) => {
                 // 如果不存在才加进去
                 if (!tmp.has(item)) {
-                    nodes.push({ id: item, label: item });
+                    nodes.push({
+                        id: item,
+                        label: item,
+                        version: jsonData[name].version,
+                        description: jsonData[name].description
+                    });
                     findNodes(item);
                 }
                 tmp.set(item, 1);
@@ -62,6 +76,7 @@ const processJsonData = (jsonData: JsonData) => {
 
     return data;
 };
+
 // 边 tooltip 坐标
 // const [showNodeTooltip, setShowNodeTooltip] = useState(false);
 // const [nodeTooltipX, setNodeToolTipX] = useState(0);
@@ -90,22 +105,33 @@ const tooltip = new G6.Tooltip({
         outDiv.style.height = 'fit-content';
         const model = e.item?.getModel();
         if (e.item.getType() === 'node') {
-            outDiv.innerHTML = `${model.name}`;
+            outDiv.innerHTML = `
+                名称：${model.id}<br/>
+                版本：${model.version ? model.version : '暂无信息'}<br/>
+                描述：${model.description ? model.description : '暂无信息'}
+            `;
         } else {
             const source = e.item.getSource();
             const target = e.item.getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().name}<br/>去向：${target.getModel().name}`;
+            outDiv.innerHTML = `来源：${source.getModel().id}<br/>去向：${target.getModel().id}`;
         }
         return outDiv;
     },
 });
 //虚线运动
+
+// 鸟瞰图组件
+const minimap = new G6.Minimap({
+    size: [200, 200],
+    type: 'keyShape',
+});
+
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
 
     useEffect(() => {
-        let selectNode: any = { id: "treeRoot", label: "treeRoot" };
+        // let selectNode: any = { id: "treeRoot", label: "treeRoot" };
         if (graphRef.current || !containerRef.current) return;
         const graph = new G6.Graph({
             container: containerRef.current,
@@ -115,8 +141,8 @@ const demoGraph = () => {
                 linkDistance: 300, // 指定边距离为100
                 nodeSize: 150,
             },
-            width: containerRef.current.clientWidth-20,
-            height: containerRef.current.clientHeight-20,
+            width: containerRef.current.clientWidth - 10,
+            height: containerRef.current.clientHeight - 10,
             // 基础的节点
             defaultNode: {
                 type: 'rect',
@@ -160,7 +186,7 @@ const demoGraph = () => {
             },
             // plugins: [minimap]
             // 定义插件
-            plugins: [tooltip],//悬浮显示信息  暂时是undefined
+            plugins: [tooltip, minimap],//悬浮显示信息  暂时是undefined
             edgeStateStyles: {
                 // 二值状态 running 为 true 时的样式
                 // 线的样式
@@ -169,7 +195,12 @@ const demoGraph = () => {
                     stroke: '#000',
                     // fill: '#000',
                     lineWidth: 2,
-                    animation: 'easeElasticIn 30s infinite linear',
+                    animation: 'ant-line 30s infinite linear',
+                },
+                clicked: {
+                    // lineWidth: 3,
+                    fill: "red",
+                    opacity: 0.3
                 }
             },
             nodeStateStyles: {
@@ -181,6 +212,7 @@ const demoGraph = () => {
                     // "shadowBlur": 10,
                     'color':'#fff'
                 },
+                // 点击节点后 节点边框变大 ....
                 selected: {
                     // fill: "rgb(255, 255, 255)",
                     stroke: "#000",
@@ -191,6 +223,7 @@ const demoGraph = () => {
                         fontWeight: 500
                     }
                 },
+                // 高亮
                 highlight: {
                     // "fill": "rgb(223, 234, 255)",
                     // "stroke": "#4572d9",
@@ -211,14 +244,6 @@ const demoGraph = () => {
                 }
 
             }
-            // defaultNode: {
-            //     type: 'node',
-            //     labelCfg: {
-            //         style: { fill: '#000000A6', fontSize: 10 },
-            //     },
-            //     style: { stroke: '#72CC4A', width: 150 },
-            // },
-            // defaultEdge: { type: 'polyline' },
         });
         console.log(graph);
         console.log(G6);
@@ -237,13 +262,7 @@ const demoGraph = () => {
         // 结构数据
         console.log(JSON_data);
         const graphJsonData = processJsonData(JSON_data);
-        // const graphJsonData: any = {
-        //     // rootId: 'treeRoot',
-        //     nodes: nodesData,
-        //     edges: linksData,
-        // };
         console.log(graphJsonData);
-
         // 绑定数据
         graph.data(graphJsonData);
         // 渲染图
@@ -255,6 +274,7 @@ const demoGraph = () => {
         graph.on("node:drag", function (e) {
             refreshDragedNodePosition(e);
         });
+        // 节点移动
         graph.on("node:dragend", function (e) {
             // e.item.get("model").fx = null;
             // e.item.get("model").fy = null;
@@ -282,19 +302,42 @@ const demoGraph = () => {
         // 单击节点
         graph.on('node:click', (ev) => {
             // 先将所有当前是 click 状态的节点置为非 click 状态
+            clear();
+            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
+            graph.setItemState(nodeItem, 'selected', true); // 设置当前
+            const edges = nodeItem.getEdges();
+            edges.forEach((edge: any) => {
+                graph.setItemState(edge, 'clicked', true);
+            })
+            const Nodes = nodeItem.getNeighbors();
+            Nodes.forEach((node: any) => {
+                graph.setItemState(node, 'highlight', true);
+            })
+        })
+        // 清空所有的样式
+        const clear = function () {
             const clickNodes = graph.findAllByState('node', 'selected');
             clickNodes.forEach((cn) => {
                 graph.setItemState(cn, 'selected', false);
             });
-            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
-            graph.setItemState(nodeItem, 'selected', true); // 设置当前
-            console.log(nodeItem.getEdges);
-
-        })
+            const clickNodes2 = graph.findAllByState('node', 'highlight');
+            clickNodes2.forEach((node: any) => {
+                graph.setItemState(node, 'highlight', false);
+            })
+            const clickEdges = graph.findAllByState('edge', 'clicked');
+            clickEdges.forEach((cn) => {
+                graph.setItemState(cn, 'clicked', false);
+            });
+        }
         // 点击画布
-        graph.on('node:canvas', (ev) => {
-            console.log("点击画布", ev);
-
+        graph.on('canvas:click', (ev) => {
+            clear();
+        })
+        // 点击边
+        graph.on('edge:click', (ev) => {
+            clear();
+            const clickEdge: any = ev.item;
+            graph.setItemState(clickEdge, 'clicked', true);
         })
         console.log(containerRef);
 
@@ -352,10 +395,10 @@ interface SearchProps {
       setSearchText(inputText);
   
       const data = processJsonData(JSON_data);
-      const targetNodes = data.nodes.filter((node) =>
+      const targetNodes = data.nodes.filter((node:any) =>
         node.label.includes(inputText)
       );
-      const results = targetNodes.map((node) => node.id);
+      const results = targetNodes.map((node:any) => node.id);
       setSearchResults(results);
       setSelectedIndex(-1);
     };
@@ -389,13 +432,13 @@ interface SearchProps {
         // 更改节点样式
         graph.updateItem(selectedNodeId, {
           style: {
-            width: 120,
-            height: 40,
-            fill: '#fff',
-            stroke: '#000',
-            padding: [2, 3, 2, 3],
-            radius: 2,
-            lineWidth: 3,
+            // width: 120,
+            // height: 40,
+            fill: 'blue',
+            // stroke: '#000',
+            // padding: [2, 3, 2, 3],
+            // radius: 2,
+            // lineWidth: 3,
           },
         });
   
@@ -436,7 +479,6 @@ interface SearchProps {
               <i className='iconfont' onClick={handleSearch}>
                 &#xe61a;
               </i>
-              <i className='iconfont'>&#xed1a;</i>
             </div>
           </div>
           {searchResults.length > 0 && (
