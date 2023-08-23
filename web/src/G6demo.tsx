@@ -4,6 +4,7 @@ import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
+import { Link } from 'react-router-dom';
 // 引入样式
 import './G6demo.scss'
 // import { log } from 'console';
@@ -26,6 +27,130 @@ interface JsonData {
  * 鸟瞰图--kx
  * 
  */
+const chooseColor = 'blue';
+const bgC = {
+    blue: '#eff8fa',
+    dark: '#303030',
+    gray: '#fff'
+}
+const defaultNodeColor = {
+    blue: {
+        defaultNodeFill: '#84a1c8',
+        defaultLabel: 'white',
+        defaultEdge: '#8898ae',
+        defaultOpacity: 0.8
+    },
+    gray: {
+        defaultNodeFill: '#e7e8ed',
+        defaultLabel: 'black',
+        defaultEdge: '#9fa1ad',
+        defaultOpacity: 0.8
+    },
+    dark: {
+        defaultNodeFill: '#e7e8ed',
+        defaultLabel: 'black',
+        defaultEdge: '#9fa1ad',
+        defaultOpacity: 1
+    }
+}
+const StateColor = {
+    blue: {
+        edgeHoverColor: "#8898ae",
+        edgeClickFill: "#36445c",
+        edgeClickOpacity: 1,
+        nodeFill: "#36445c",
+        nodeSelectedStroke: "#36445c",
+        nodeHighlightFill: "#36445c",
+        nodeHighlightstroke: "#84a1c8",
+        nodeHighlightOpacity: 0.8,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 500
+    },
+    gray: {
+        edgeHoverColor: "#15171b",
+        edgeClickFill: "#8b9092",
+        nodeSelectedStroke: "#795548",
+        edgeClickOpacity: 1,
+        nodeFill: "#f7f7f7",
+        nodeHighlightFill: "#e8e8e8",
+        nodeHighlightstroke: "#9b9999",
+        nodeHighlightOpacity: 0.8,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 700
+    },
+    dark: {
+        edgeHoverColor: "#e9c46a",
+        edgeClickFill: "#e9c46a",
+        nodeSelectedStroke: "#fd6d5a",
+        edgeClickOpacity: 1,
+        nodeFill: "#f7f7f7",
+        nodeHighlightFill: "#c07093",
+        nodeHighlightstroke: "#c07093",
+        nodeHighlightOpacity: 1,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 700
+    }
+}
+const edgeStateStyles = {
+    hover: {
+        stroke: StateColor[chooseColor].edgeHoverColor,
+        lineWidth: 3,
+        shadowColor: "#36445c",
+        shadowBlur: 20,
+        color: StateColor[chooseColor].edgeHoverColor,
+        opacity: .7,
+    },
+    clicked: {
+        lineWidth: 3,
+        // color: StateColor[chooseColor].edgeClickFill,
+        stroke: StateColor[chooseColor].edgeClickFill,
+        opacity: StateColor[chooseColor].edgeClickOpacity,
+    },
+}
+// 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
+const nodeStateStyles = {
+    selected: {
+        fill: StateColor[chooseColor].nodeFill,
+        stroke: StateColor[chooseColor].nodeSelectedStroke,
+        lineWidth: 3,
+        // shadowColor: "rgb(95, 149, 255)",
+        // shadowBlur: 10,
+        "text-shape": {
+            fontWeight: StateColor[chooseColor].textWeight
+        },
+        "shadowColor": "#aeaeae",
+        "shadowBlur": 50,
+        opacity: StateColor[chooseColor].edgeClickOpacity,
+    },
+    // 高亮
+    highlight: {
+        fill: StateColor[chooseColor].nodeHighlightFill,
+        // "stroke": "#4572d9",
+        "lineWidth": 2,
+        "text-shape": {
+            "fontWeight": StateColor[chooseColor].textWeight
+        },
+        "stroke": StateColor[chooseColor].nodeHighlightstroke,
+        opacity: StateColor[chooseColor].edgeClickOpacity
+    },
+    hover: {
+        // stroke: "yellow",
+        // "fill": "rgb(247, 250, 255)",
+        "stroke": StateColor[chooseColor].nodeHoverStroke,
+        // "lineWidth": 2,
+        "shadowColor": "#aeaeae",
+        "shadowBlur": 50
+    },
+    target:{
+      fill: "rgb(255, 255, 255)",
+      stroke: "#000",
+      lineWidth: 4,
+      shadowBlur: 10,
+      "text-shape": {
+          fontWeight: 500
+      }
+   }
+}
 
 // 数据
 const processJsonData = (jsonData: JsonData) => {
@@ -46,7 +171,13 @@ const processJsonData = (jsonData: JsonData) => {
                         id: item,
                         label: item,
                         version: jsonData[name].version,
-                        description: jsonData[name].description
+                        description: jsonData[name].description,
+                        style: {
+                                      width: 140,
+                                      height: 60,
+                                      fill: '#dfbfff'
+                                  }
+
                     });
                     findNodes(item);
                 }
@@ -141,121 +272,66 @@ const demoGraph = () => {
             layout: {
                 type: 'force',
                 preventOverlap: true,// 防止节点重叠
-                linkDistance: 300, // 指定边距离为100
+                linkDistance: 400, // 指定边距离为100
                 nodeSize: 150,
+                tyle: {
+                        'background-color': '#000',
+                        color: 'white'}
             },
             width: containerRef.current.clientWidth - 10,
             height: containerRef.current.clientHeight - 10,
             // 基础的节点
             defaultNode: {
-                type: 'rect',
-                size: 85,
-                style: {
-                    width: 120,
-                    height: 40,
-                    fill: '#fff',
-                    stroke: '#3e6f81',
-                    padding: [2, 3, 2, 3],
-                    radius: 2,
-                    lineWidth: 3,
-                },
-                labelCfg: {
-                    style: {
-                        fill: '#917253',
-                        fontSize: 12,
-                    },
-                }
-            },
-            defaultEdge: {
-                type: 'quadratic',
-                labelCfg: {
-                    autoRotate: true,
-                },
-                style: {
-                    endArrow: {
-                        // 自定义箭头指向(0, 0)，尾部朝向 x 轴正方向的 path
-                        path: 'M 0,0 L 10,5 L 10,-5 Z',
-                        // 箭头的偏移量，负值代表向 x 轴正方向移动
-                        // d: -10,
-                        // v3.4.1 后支持各样式属性
-                        fill: '#333',
-                        stroke: '#666',
-                        opacity: 0.3,
-                    },
-                }
-            },
+              type: 'rect',
+              size: 85,
+              style: {
+                  width: 120,
+                  height: 40,
+                  fill: defaultNodeColor[chooseColor].defaultNodeFill,
+                  // stroke: '#red',
+                  padding: [2, 3, 2, 3],
+                  radius: 5,
+                  lineWidth: 0,
+                  opacity: defaultNodeColor[chooseColor].defaultOpacity
+              },
+              labelCfg: {
+                  style: {
+                      fill: defaultNodeColor[chooseColor].defaultLabel,
+                      fontSize: 12,
+                      fontWeight: 700,
+
+                  },
+              }
+          },
+          defaultEdge: {
+              type: 'quadratic',
+              labelCfg: {
+                  autoRotate: true,
+              },
+              style: {
+                  endArrow: {
+                      // 自定义箭头指向(0, 0)，尾部朝向 x 轴正方向的 path
+                      path: 'M 0,0 L 10,5 L 10,-5 Z',
+                      // 箭头的偏移量，负值代表向 x 轴正方向移动
+                      // d: -10,
+                      // v3.4.1 后支持各样式属性
+                      fill: defaultNodeColor[chooseColor].defaultEdge,
+                      stroke: defaultNodeColor[chooseColor].defaultEdge,
+                      opacity: 0.3,
+                  },
+                  lineWidth: 2,
+                  opacity: 0.3,
+              },
+              color: defaultNodeColor[chooseColor].defaultEdge,
+          },
             modes: {
-                default: ["drag-canvas", "zoom-canvas", 'activate-relations'],
+                default: ["drag-canvas", "zoom-canvas"],
             },
             // plugins: [minimap]
             // 定义插件
             plugins: [tooltip, minimap],//悬浮显示信息  暂时是undefined
-            edgeStateStyles: {
-                // 二值状态 running 为 true 时的样式
-                // 线的样式
-                running: {
-                    // keyShape 的状态样式
-                    stroke: '#000',
-                    // fill: '#000',
-                    lineWidth: 2,
-                    animation: 'ant-line 30s infinite linear',
-                },
-                clicked: {
-                    // lineWidth: 3,
-                    fill: "red",
-                    opacity: 0.3
-                }
-            },
-            nodeStateStyles: {
-                active: {
-                    // "fill": "#000",
-                    "stroke": "#000",
-                    "lineWidth": 2,
-                    "shadowColor": "#fff",
-                    // "shadowBlur": 10,
-                    'color':'#fff'
-                },
-                // 点击节点后 节点边框变大 ....
-                selected: {
-                    // fill: "rgb(255, 255, 255)",
-                    stroke: "#000",
-                    lineWidth: 4,
-                    // shadowColor: "rgb(95, 149, 255)",
-                    // shadowBlur: 10,
-                    "text-shape": {
-                        fontWeight: 500
-                    }
-                },
-                // 高亮
-                highlight: {
-                    // "fill": "rgb(223, 234, 255)",
-                    // "stroke": "#4572d9",
-                    "lineWidth": 2,
-                    "text-shape": {
-                        "fontWeight": 500
-                    }
-                },
-                inactive: {
-                    // "fill": "rgb(247, 250, 255)",
-                    // "stroke": "rgb(191, 213, 255)",
-                    "lineWidth": 1
-                },
-                disable: {
-                    // "fill": "rgb(250, 250, 250)",
-                    // "stroke": "rgb(224, 224, 224)",
-                    "lineWidth": 1
-                },
-                target:{
-                   fill: "rgb(255, 255, 255)",
-                   stroke: "#000",
-                   lineWidth: 4,
-                   shadowBlur: 10,
-                   "text-shape": {
-                       fontWeight: 500
-                   }
-                }
-
-            }
+            edgeStateStyles:edgeStateStyles,
+            nodeStateStyles:nodeStateStyles,
         });
         console.log(graph);
         console.log(G6);
@@ -289,13 +365,8 @@ const demoGraph = () => {
         });
         // 鼠标悬浮节点
         graph.on('node:mouseenter', (ev) => {
-            // const nodeItem = ev.item // 获取被点击的节点元素对象
-            // console.log(nodeItem);
-            const node = ev.item;
-            const edges = node?._cfg?.edges;
-            edges.forEach((edge: any) => {
-                graph.setItemState(edge, 'running', true)
-            });
+          const nodeItem: any = ev.item;
+          graph.setItemState(nodeItem, 'hover', true); // 设置当前
         });
         // 鼠标离开悬浮节点
         graph.on('node:mouseleave', (ev) => {
@@ -304,6 +375,15 @@ const demoGraph = () => {
             // console.log(node);
             const edges = node?._cfg?.edges;
             edges.forEach((edge: any) => graph.setItemState(edge, 'running', false));
+             // 鼠标悬浮线条
+              graph.on('edge:mouseenter', (ev) => {
+              const edgeItem: any = ev.item;
+              graph.setItemState(edgeItem, 'hover', true); // 设置当前
+          })
+          graph.on('edge:mouseleave', (ev) => {
+              const edges = graph.findAllByState('edge', 'hover');
+              edges.forEach((edge: any) => graph.setItemState(edge, 'hover', false));
+          })
         });
         // 单击节点
         graph.on('node:click', (ev) => {
@@ -344,6 +424,8 @@ const demoGraph = () => {
             clear();
             const clickEdge: any = ev.item;
             graph.setItemState(clickEdge, 'clicked', true);
+            graph.setItemState(clickEdge.getSource(), 'highlight', true);
+            graph.setItemState(clickEdge.getTarget(), 'highlight', true);
         })
         console.log(containerRef);
 
@@ -376,7 +458,7 @@ const demoGraph = () => {
 
 
 
-        <div ref={containerRef} style={{ width:'100%',height:'100vh' }}></div>
+        <div ref={containerRef} style={{ width:'100%',height:'100vh',backgroundColor: bgC[chooseColor]  }}></div>
         
     </>
     );
@@ -567,6 +649,8 @@ const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
             )}
             <i className='iconfont'>&#xe6ab;</i>
           </li>
+        <Link to={'/dev'}>
+          
           <li
             onClick={() => handleItemClick('Item 2')}
             onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
@@ -578,6 +662,8 @@ const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
             )}
             <i className='iconfont'>&#xe6c1;</i>
           </li>
+          </Link>
+
           <li
             onClick={() => handleItemClick('Item 3')}
             onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
