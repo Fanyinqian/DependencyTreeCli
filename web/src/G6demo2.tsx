@@ -244,23 +244,26 @@ const demoGraph = () => {
                     // "fill": "rgb(250, 250, 250)",
                     // "stroke": "rgb(224, 224, 224)",
                     "lineWidth": 1
+                },
+                target:{
+                   fill: "rgb(255, 255, 255)",
+                   stroke: "#000",
+                   lineWidth: 4,
+                   shadowBlur: 10,
+                   "text-shape": {
+                       fontWeight: 500
+                   }
                 }
 
             }
         });
         console.log(graph);
         console.log(G6);
-
-
-
-
-
+        
         // 将 graph 传递给 Search 组件作为 prop
+        
         ReactDOM.render(<Search graph={graph} />, document.getElementById("search-container"));
         
-
-
-
         // graph.registerNode()
         // 结构数据
         console.log(JSON_data);
@@ -389,10 +392,17 @@ interface SearchProps {
     const [searchResults, setSearchResults] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const lastTargetNodeId = useRef<string | null>(null);
+    const searchResultsContainerRef = useRef<HTMLDivElement | null>(null);
   
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputText = e.target.value;
       setSearchText(inputText);
+  
+      if (inputText === '') {
+        setSearchResults([]);
+        setSelectedIndex(-1);
+        return;
+      }
   
       const data = processJsonData(JSON_data);
       const targetNodes = data.nodes.filter((node:any) =>
@@ -403,66 +413,85 @@ interface SearchProps {
       setSelectedIndex(-1);
     };
   
-    const handleSearch = () => {
-      let selectedNodeId = searchResults[selectedIndex];
-      if (!selectedNodeId && searchResults.length === 1) {
-        selectedNodeId = searchResults[0];
+const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (searchResults.length > 0) {
+      if (selectedIndex === -1) {
+        setSelectedIndex(0);
       }
-  
-      if (selectedNodeId) {
-        if (lastTargetNodeId.current) {
-          // 取消上一个节点的样式
-        //   graph.updateItem(lastTargetNodeId.current, {
-        //     style: {
-        //       width: 120,
-        //       height: 40,
-        //       fill: '#fff',
-        //       stroke: '#3e6f81',
-        //       padding: [2, 3, 2, 3],
-        //       radius: 2,
-        //       lineWidth: 3,
-        //     },
-        //   });
+
+      handleSearch();
+    } else {
+      // 搜索结果为空时，直接执行搜索
+      handleSearch();
+    }
+  } else if (e.code.startsWith('Digit') && searchResults.length > 0) {
+    e.preventDefault();
+    const index = Number(e.key) - 1;
+    setSelectedIndex(index >= 0 && index < searchResults.length ? index : -1);
+    handleSearch(); // 在按下数字键后，执行 handleSearch() 完成居中操作
+  }
+};
+    
+    const handleSearch = () => {
+      if (selectedIndex !== -1) {
+        const selectedNodeId = searchResults[selectedIndex];
+        const node = graph.findById(selectedNodeId);
+        graph.setItemState(node, 'target', true);
+    
+        if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
+          const lastNode = graph.findById(lastTargetNodeId.current);
+          graph.clearItemStates(lastNode);
         }
-  
-        // 将目标节点居中显示
+    
         console.log('找到内容', selectedNodeId);
         graph.focusItem(selectedNodeId);
-  
-        // 更改节点样式
-        // graph.updateItem(selectedNodeId, {
-        //   style: {
-        //     // width: 120,
-        //     // height: 40,
-        //     // fill: 'blue',
-        //     // stroke: '#000',
-        //     // padding: [2, 3, 2, 3],
-        //     // radius: 2,
-        //     // lineWidth: 3,
-        //   },
-        // });
-  
+    
         lastTargetNodeId.current = selectedNodeId;
+    
+        // 如果是最后一个节点，则重置选定的下标
+        if (selectedIndex === searchResults.length - 1) {
+          setSelectedIndex(-1);
+        }
+      } else if (searchResults.length === 1) {
+        const selectedNodeId = searchResults[0];
+        const node = graph.findById(selectedNodeId);
+        graph.setItemState(node, 'target', true);
+    
+        if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
+          const lastNode = graph.findById(lastTargetNodeId.current);
+          graph.clearItemStates(lastNode);
+        }
+    
+        console.log('找到内容', selectedNodeId);
+        graph.focusItem(selectedNodeId);
+    
+        lastTargetNodeId.current = selectedNodeId;
+    
+        // 重置选定的下标
+        setSelectedIndex(0);
       } else {
-        alert('未找到目标节点');
+        console.log('未找到目标节点');
       }
     };
   
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        handleSearch();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : searchResults.length - 1
-        );
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((prevIndex) =>
-          prevIndex < searchResults.length - 1 ? prevIndex + 1 : 0
-        );
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        searchResultsContainerRef.current &&
+        !searchResultsContainerRef.current.contains(e.target as Node)
+      ) {
+        setSearchResults([]);
+        setSelectedIndex(-1);
       }
     };
+  
+    useEffect(() => {
+      document.addEventListener('click', handleOutsideClick);
+      return () => {
+        document.removeEventListener('click', handleOutsideClick);
+      };
+    }, []);
   
     return (
       <>
@@ -475,14 +504,12 @@ interface SearchProps {
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
             />
-            <div className='font'>
-              <i className='iconfont' onClick={handleSearch}>
-                &#xe61a;
-              </i>
+            <div className='font' onClick={handleSearch}>
+              <i className='iconfont'>&#xe61a;</i>
             </div>
           </div>
           {searchResults.length > 0 && (
-            <div className='searchResults'>
+            <div ref={searchResultsContainerRef} className='searchResults'>
               {searchResults.map((result, index) => (
                 <div
                   key={result}
@@ -504,6 +531,11 @@ interface SearchProps {
     );
   };
   
+  
+
+
+  
+//侧边栏部分
   const Sidebar: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState('');
     const [tooltipText, setTooltipText] = useState('');
