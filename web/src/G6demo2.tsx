@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
 import './Search/index.scss'
-import './side.scss'
 // 引入样式
 import './G6demo.scss'
 // import { log } from 'console';
@@ -12,8 +11,8 @@ interface JsonData {
         name: any;
         dependencies: string[];
         // 其他属性
-        version:string,
-        description:string
+        version: string,
+        description: string
     };
 }
 /**
@@ -27,7 +26,7 @@ interface JsonData {
  * 
  */
 
-// 数据
+// 数据i
 const processJsonData = (jsonData: JsonData) => {
     let tmp = new Map();
     let nodes: any = [];
@@ -36,6 +35,11 @@ const processJsonData = (jsonData: JsonData) => {
         label: jsonData['treeRoot'].name,
         version: jsonData['treeRoot'].version,
         description: jsonData['treeRoot'].description,
+        style: {
+            width: 140,
+            height: 60,
+            fill: 'orange'
+        }
     })
     let findNodes = (name: any) => {
         if (jsonData[name]) {
@@ -46,7 +50,7 @@ const processJsonData = (jsonData: JsonData) => {
                         id: item,
                         label: item,
                         version: jsonData[name].version,
-                        description: jsonData[name].description
+                        description: jsonData[name].description,
                     });
                     findNodes(item);
                 }
@@ -91,6 +95,122 @@ const processJsonData = (jsonData: JsonData) => {
 //     className: 'minimap',
 //     type: 'delegate',
 // });
+
+const chooseColor = 'blue';
+const bgC = {
+    blue: '#eff8fa',
+    dark: '#303030',
+    gray: '#fff'
+}
+const defaultNodeColor = {
+    blue: {
+        defaultNodeFill: '#84a1c8',
+        defaultLabel: 'white',
+        defaultEdge: '#8898ae',
+        defaultOpacity: 0.8
+    },
+    gray: {
+        defaultNodeFill: '#e7e8ed',
+        defaultLabel: 'black',
+        defaultEdge: '#9fa1ad',
+        defaultOpacity: 0.8
+    },
+    dark: {
+        defaultNodeFill: '#e7e8ed',
+        defaultLabel: 'black',
+        defaultEdge: '#9fa1ad',
+        defaultOpacity: 1
+    }
+}
+const StateColor = {
+    blue: {
+        edgeHoverColor: "#8898ae",
+        edgeClickFill: "#36445c",
+        edgeClickOpacity: 1,
+        nodeFill: "#36445c",
+        nodeSelectedStroke: "#36445c",
+        nodeHighlightFill: "#36445c",
+        nodeHighlightstroke: "#84a1c8",
+        nodeHighlightOpacity: 0.8,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 500
+    },
+    gray: {
+        edgeHoverColor: "#15171b",
+        edgeClickFill: "#8b9092",
+        nodeSelectedStroke: "#795548",
+        edgeClickOpacity: 1,
+        nodeFill: "#f7f7f7",
+        nodeHighlightFill: "#e8e8e8",
+        nodeHighlightstroke: "#9b9999",
+        nodeHighlightOpacity: 0.8,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 700
+    },
+    dark: {
+        edgeHoverColor: "#e9c46a",
+        edgeClickFill: "#e9c46a",
+        nodeSelectedStroke: "#fd6d5a",
+        edgeClickOpacity: 1,
+        nodeFill: "#f7f7f7",
+        nodeHighlightFill: "#c07093",
+        nodeHighlightstroke: "#c07093",
+        nodeHighlightOpacity: 1,
+        nodeHoverStroke: "#9a9898",
+        textWeight: 700
+    }
+}
+const edgeStateStyles = {
+    hover: {
+        stroke: StateColor[chooseColor].edgeHoverColor,
+        lineWidth: 3,
+        shadowColor: "#36445c",
+        shadowBlur: 20,
+        color: StateColor[chooseColor].edgeHoverColor,
+        opacity: .7,
+    },
+    clicked: {
+        lineWidth: 3,
+        // color: StateColor[chooseColor].edgeClickFill,
+        stroke: StateColor[chooseColor].edgeClickFill,
+        opacity: StateColor[chooseColor].edgeClickOpacity,
+    },
+}
+// 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
+const nodeStateStyles = {
+    selected: {
+        fill: StateColor[chooseColor].nodeFill,
+        stroke: StateColor[chooseColor].nodeSelectedStroke,
+        lineWidth: 3,
+        // shadowColor: "rgb(95, 149, 255)",
+        // shadowBlur: 10,
+        "text-shape": {
+            fontWeight: StateColor[chooseColor].textWeight
+        },
+        "shadowColor": "#aeaeae",
+        "shadowBlur": 50,
+        opacity: StateColor[chooseColor].edgeClickOpacity,
+    },
+    // 高亮
+    highlight: {
+        fill: StateColor[chooseColor].nodeHighlightFill,
+        // "stroke": "#4572d9",
+        "lineWidth": 2,
+        "text-shape": {
+            "fontWeight": StateColor[chooseColor].textWeight
+        },
+        "stroke": StateColor[chooseColor].nodeHighlightstroke,
+        opacity: StateColor[chooseColor].edgeClickOpacity
+    },
+    hover: {
+        // stroke: "yellow",
+        // "fill": "rgb(247, 250, 255)",
+        "stroke": StateColor[chooseColor].nodeHoverStroke,
+        // "lineWidth": 2,
+        "shadowColor": "#aeaeae",
+        "shadowBlur": 50
+    }
+}
 
 // 悬浮节点 出现信息
 const tooltip = new G6.Tooltip({
@@ -138,14 +258,22 @@ const demoGraph = () => {
         if (graphRef.current || !containerRef.current) return;
         const graph = new G6.Graph({
             container: containerRef.current,
+            // 
             layout: {
                 type: 'force',
                 preventOverlap: true,// 防止节点重叠
-                linkDistance: 300, // 指定边距离为100
+                linkDistance: 400, // 指定边距离为100
                 nodeSize: 150,
+                style: {
+                    'background-color': '#000',
+                    color: 'white'
+                }
             },
             width: containerRef.current.clientWidth - 10,
             height: containerRef.current.clientHeight - 10,
+            // style: {
+            //     'background-color': '#000'
+            // },
             // 基础的节点
             defaultNode: {
                 type: 'rect',
@@ -153,16 +281,19 @@ const demoGraph = () => {
                 style: {
                     width: 120,
                     height: 40,
-                    fill: '#fff',
-                    stroke: '#3e6f81',
+                    fill: defaultNodeColor[chooseColor].defaultNodeFill,
+                    // stroke: '#red',
                     padding: [2, 3, 2, 3],
-                    radius: 2,
-                    lineWidth: 3,
+                    radius: 5,
+                    lineWidth: 0,
+                    opacity: defaultNodeColor[chooseColor].defaultOpacity
                 },
                 labelCfg: {
                     style: {
-                        fill: '#917253',
+                        fill: defaultNodeColor[chooseColor].defaultLabel,
                         fontSize: 12,
+                        fontWeight: 700,
+
                     },
                 }
             },
@@ -178,92 +309,33 @@ const demoGraph = () => {
                         // 箭头的偏移量，负值代表向 x 轴正方向移动
                         // d: -10,
                         // v3.4.1 后支持各样式属性
-                        fill: '#333',
-                        stroke: '#666',
+                        fill: defaultNodeColor[chooseColor].defaultEdge,
+                        stroke: defaultNodeColor[chooseColor].defaultEdge,
                         opacity: 0.3,
                     },
-                }
+                    lineWidth: 2,
+                    opacity: 0.8,
+                },
+                color: defaultNodeColor[chooseColor].defaultEdge,
             },
             modes: {
-                default: ["drag-canvas", "zoom-canvas", 'activate-relations'],
+                default: ["drag-canvas", "zoom-canvas"],
             },
             // plugins: [minimap]
             // 定义插件
             plugins: [tooltip, minimap],//悬浮显示信息  暂时是undefined
-            edgeStateStyles: {
-                // 二值状态 running 为 true 时的样式
-                // 线的样式
-                running: {
-                    // keyShape 的状态样式
-                    stroke: '#000',
-                    // fill: '#000',
-                    lineWidth: 2,
-                    animation: 'ant-line 30s infinite linear',
-                },
-                clicked: {
-                    // lineWidth: 3,
-                    fill: "red",
-                    opacity: 0.3
-                }
-            },
-            nodeStateStyles: {
-                active: {
-                    // "fill": "#000",
-                    "stroke": "#000",
-                    "lineWidth": 2,
-                    "shadowColor": "#fff",
-                    // "shadowBlur": 10,
-                    'color':'#fff'
-                },
-                // 点击节点后 节点边框变大 ....
-                selected: {
-                    // fill: "rgb(255, 255, 255)",
-                    stroke: "#000",
-                    lineWidth: 4,
-                    // shadowColor: "rgb(95, 149, 255)",
-                    // shadowBlur: 10,
-                    "text-shape": {
-                        fontWeight: 500
-                    }
-                },
-                // 高亮
-                highlight: {
-                    // "fill": "rgb(223, 234, 255)",
-                    // "stroke": "#4572d9",
-                    "lineWidth": 2,
-                    "text-shape": {
-                        "fontWeight": 500
-                    }
-                },
-                inactive: {
-                    // "fill": "rgb(247, 250, 255)",
-                    // "stroke": "rgb(191, 213, 255)",
-                    "lineWidth": 1
-                },
-                disable: {
-                    // "fill": "rgb(250, 250, 250)",
-                    // "stroke": "rgb(224, 224, 224)",
-                    "lineWidth": 1
-                },
-                target:{
-                   fill: "rgb(255, 255, 255)",
-                   stroke: "#000",
-                   lineWidth: 4,
-                   shadowBlur: 10,
-                   "text-shape": {
-                       fontWeight: 500
-                   }
-                }
-
-            }
+            edgeStateStyles: edgeStateStyles
+            ,
+            nodeStateStyles: nodeStateStyles
         });
         console.log(graph);
         console.log(G6);
-        
         // 将 graph 传递给 Search 组件作为 prop
-        
         ReactDOM.render(<Search graph={graph} />, document.getElementById("search-container"));
-        
+
+
+
+
         // graph.registerNode()
         // 结构数据
         console.log(JSON_data);
@@ -291,20 +363,39 @@ const demoGraph = () => {
         graph.on('node:mouseenter', (ev) => {
             // const nodeItem = ev.item // 获取被点击的节点元素对象
             // console.log(nodeItem);
-            const node = ev.item;
-            const edges = node?._cfg?.edges;
-            edges.forEach((edge: any) => {
-                graph.setItemState(edge, 'running', true)
-            });
+            const nodeItem: any = ev.item;
+            graph.setItemState(nodeItem, 'hover', true); // 设置当前
+            // 线条
+            // const edges = node?._cfg?.edges;
+            // edges.forEach((edge: any) => {
+            //     graph.setItemState(edge, 'running', true)
+            // });
+            // 节点
+            // const nodeItem: any = ev.item; // 获取被点击的节点元素对象
+            // const Nodes = nodeItem.getNeighbors();
+            // Nodes.forEach((node: any) => {
+            //     graph.setItemState(node, 'hover', true);
+            // })
         });
         // 鼠标离开悬浮节点
         graph.on('node:mouseleave', (ev) => {
             // console.log(ev);
-            const node = ev.item;
+            // const node = ev.item;
             // console.log(node);
-            const edges = node?._cfg?.edges;
-            edges.forEach((edge: any) => graph.setItemState(edge, 'running', false));
+            // const edges = node?._cfg?.edges;
+            // edges.forEach((edge: any) => graph.setItemState(edge, 'running', false));
+            const Nodes = graph.findAllByState('node', 'hover');
+            Nodes.forEach((node: any) => graph.setItemState(node, 'hover', false));
         });
+        // 鼠标悬浮线条
+        graph.on('edge:mouseenter', (ev) => {
+            const edgeItem: any = ev.item;
+            graph.setItemState(edgeItem, 'hover', true); // 设置当前
+        })
+        graph.on('edge:mouseleave', (ev) => {
+            const edges = graph.findAllByState('edge', 'hover');
+            edges.forEach((edge: any) => graph.setItemState(edge, 'hover', false));
+        })
         // 单击节点
         graph.on('node:click', (ev) => {
             // 先将所有当前是 click 状态的节点置为非 click 状态
@@ -344,6 +435,10 @@ const demoGraph = () => {
             clear();
             const clickEdge: any = ev.item;
             graph.setItemState(clickEdge, 'clicked', true);
+            // console.log(clickEdge);1
+
+            graph.setItemState(clickEdge.getSource(), 'highlight', true);
+            graph.setItemState(clickEdge.getTarget(), 'highlight', true);
         })
         console.log(containerRef);
 
@@ -363,7 +458,7 @@ const demoGraph = () => {
         console.log(containerRef);
         console.log(graphRef);
         graphRef.current = graph;
-        
+
     }, [])
     return (<>
         {/* <h1>demo2-tsx</h1> */}
@@ -371,13 +466,12 @@ const demoGraph = () => {
 
 
 
-        <div id="search-container"></div>
-        <Sidebar></Sidebar>
+        <div id="search-container" ></div>
 
 
 
-        <div ref={containerRef} style={{ width:'100%',height:'100vh' }}></div>
-        
+
+        <div ref={containerRef} style={{ width: '100%', height: '100vh', backgroundColor: bgC[chooseColor] }} ></div>
     </>
     );
 }
@@ -386,224 +480,138 @@ const demoGraph = () => {
 // 搜索部分
 interface SearchProps {
     graph: Graph;
-  }
+}
+
+
+
 const Search = ({ graph }: SearchProps) => {
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const lastTargetNodeId = useRef<string | null>(null);
-    const searchResultsContainerRef = useRef<HTMLDivElement | null>(null);
-  
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputText = e.target.value;
-      setSearchText(inputText);
-  
-      if (inputText === '') {
-        setSearchResults([]);
-        setSelectedIndex(-1);
-        return;
-      }
-  
-      const data = processJsonData(JSON_data);
-      const targetNodes = data.nodes.filter((node:any) =>
-        node.label.includes(inputText)
-      );
-      const results = targetNodes.map((node:any) => node.id);
-      setSearchResults(results);
-      setSelectedIndex(-1);
-    };
-  
-const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (searchResults.length > 0) {
-      if (selectedIndex === -1) {
-        setSelectedIndex(0);
-      }
+        const inputText = e.target.value;
+        setSearchText(inputText);
 
-      handleSearch();
-    } else {
-      // 搜索结果为空时，直接执行搜索
-      handleSearch();
-    }
-  } else if (e.code.startsWith('Digit') && searchResults.length > 0) {
-    e.preventDefault();
-    const index = Number(e.key) - 1;
-    setSelectedIndex(index >= 0 && index < searchResults.length ? index : -1);
-    handleSearch(); // 在按下数字键后，执行 handleSearch() 完成居中操作
-  }
-};
-    
+        const data = processJsonData(JSON_data);
+        const targetNodes = data.nodes.filter((node: any) =>
+            node.label.includes(inputText)
+        );
+        const results = targetNodes.map((node: any) => node.id);
+        setSearchResults(results);
+        setSelectedIndex(-1);
+    };
+
     const handleSearch = () => {
-      if (selectedIndex !== -1) {
-        const selectedNodeId = searchResults[selectedIndex];
-        const node = graph.findById(selectedNodeId);
-        graph.setItemState(node, 'target', true);
-    
-        if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
-          const lastNode = graph.findById(lastTargetNodeId.current);
-          graph.clearItemStates(lastNode);
+        let selectedNodeId = searchResults[selectedIndex];
+        if (!selectedNodeId && searchResults.length === 1) {
+            selectedNodeId = searchResults[0];
         }
-    
-        console.log('找到内容', selectedNodeId);
-        graph.focusItem(selectedNodeId);
-    
-        lastTargetNodeId.current = selectedNodeId;
-    
-        // 如果是最后一个节点，则重置选定的下标
-        if (selectedIndex === searchResults.length - 1) {
-          setSelectedIndex(-1);
+
+        if (selectedNodeId) {
+            if (lastTargetNodeId.current) {
+                // 取消上一个节点的样式
+                //   graph.updateItem(lastTargetNodeId.current, {
+                //     style: {
+                //       width: 120,
+                //       height: 40,
+                //       fill: '#fff',
+                //       stroke: '#3e6f81',
+                //       padding: [2, 3, 2, 3],
+                //       radius: 2,
+                //       lineWidth: 3,
+                //     },
+                //   });
+            }
+
+            // 将目标节点居中显示
+            console.log('找到内容', selectedNodeId);
+            graph.focusItem(selectedNodeId);
+
+            // 更改节点样式
+            // graph.updateItem(selectedNodeId, {
+            //   style: {
+            //     // width: 120,
+            //     // height: 40,
+            //     // fill: 'blue',
+            //     // stroke: '#000',
+            //     // padding: [2, 3, 2, 3],
+            //     // radius: 2,
+            //     // lineWidth: 3,
+            //   },
+            // });
+
+            lastTargetNodeId.current = selectedNodeId;
+        } else {
+            alert('未找到目标节点');
         }
-      } else if (searchResults.length === 1) {
-        const selectedNodeId = searchResults[0];
-        const node = graph.findById(selectedNodeId);
-        graph.setItemState(node, 'target', true);
-    
-        if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
-          const lastNode = graph.findById(lastTargetNodeId.current);
-          graph.clearItemStates(lastNode);
-        }
-    
-        console.log('找到内容', selectedNodeId);
-        graph.focusItem(selectedNodeId);
-    
-        lastTargetNodeId.current = selectedNodeId;
-    
-        // 重置选定的下标
-        setSelectedIndex(0);
-      } else {
-        console.log('未找到目标节点');
-      }
     };
-  
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        searchResultsContainerRef.current &&
-        !searchResultsContainerRef.current.contains(e.target as Node)
-      ) {
-        setSearchResults([]);
-        setSelectedIndex(-1);
-      }
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex((prevIndex) =>
+                prevIndex > 0 ? prevIndex - 1 : searchResults.length - 1
+            );
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex((prevIndex) =>
+                prevIndex < searchResults.length - 1 ? prevIndex + 1 : 0
+            );
+        }
     };
-  
-    useEffect(() => {
-      document.addEventListener('click', handleOutsideClick);
-      return () => {
-        document.removeEventListener('click', handleOutsideClick);
-      };
-    }, []);
-  
+
     return (
-      <>
-        <div className='search'>
-          <div className='searchCon'>
-            <input
-              placeholder='输入搜索内容'
-              type='text'
-              value={searchText}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-            />
-            <div className='font' onClick={handleSearch}>
-              <i className='iconfont'>&#xe61a;</i>
-            </div>
-          </div>
-          {searchResults.length > 0 && (
-            <div ref={searchResultsContainerRef} className='searchResults'>
-              {searchResults.map((result, index) => (
-                <div
-                  key={result}
-                  className={`resultItem ${
-                    index === selectedIndex ? 'selected' : ''
-                  }`}
-                  onClick={() => {
-                    setSelectedIndex(index);
-                    handleSearch();
-                  }}
-                >
-                  {result}
+        <>
+            <div className='search'>
+                <div className='searchCon'>
+                    <input
+                        placeholder='输入搜索内容'
+                        type='text'
+                        value={searchText}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+
+                    />
+                    <div className='font'>
+                        <i className='iconfont' onClick={handleSearch}
+                        >
+                            &#xe61a;
+                        </i>
+                    </div>
                 </div>
-              ))}
+                {searchResults.length > 0 && (
+                    <div className='searchResults'>
+                        {searchResults.map((result, index) => (
+                            <div
+                                key={result}
+                                className={`resultItem ${index === selectedIndex ? 'selected' : ''
+                                    }`}
+                                onClick={() => {
+                                    setSelectedIndex(index);
+                                    handleSearch();
+                                }}
+
+                            >
+                                {result}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-          )}
-        </div>
-      </>
+        </>
     );
 };
-  
-  
 
 
-  
-//侧边栏部分
-  const Sidebar: React.FC = () => {
-    const [selectedItem, setSelectedItem] = useState('');
-    const [tooltipText, setTooltipText] = useState('');
-  
-    const handleItemClick = (item: string) => {
-      setSelectedItem(item);
-    };
-  
-    const handleMouseEnter = (text: string) => {
-      setTooltipText(text);
-    };
-  
-    const handleMouseLeave = () => {
-      setTooltipText('');
-    };
-  
-    return (
-      <div className="sidebar">
-        {/* {tooltipText && <div className="tooltip">{tooltipText}</div>} */}
-        <ul>
-          <li
-            onClick={() => handleItemClick('Item 1')}
-            onMouseEnter={() => handleMouseEnter('Tooltip for Item 1')}
-            onMouseLeave={handleMouseLeave}
-            className={selectedItem === 'Item 1' ? 'active' : ''}
-          >
-            {tooltipText === 'Tooltip for Item 1' && (
-              <div className="tooltip-left">切换模式</div>
-            )}
-            <i className='iconfont'>&#xe6ab;</i>
-          </li>
-          <li
-            onClick={() => handleItemClick('Item 2')}
-            onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
-            onMouseLeave={handleMouseLeave}
-            className={selectedItem === 'Item 2' ? 'active' : ''}
-          >
-            {tooltipText === 'Tooltip for Item 2' && (
-              <div className="tooltip-left">切换dev</div>
-            )}
-            <i className='iconfont'>&#xe6c1;</i>
-          </li>
-          <li
-            onClick={() => handleItemClick('Item 3')}
-            onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
-            onMouseLeave={handleMouseLeave}
-            className={selectedItem === 'Item 3' ? 'active' : ''}
-          >
-            {tooltipText === 'Tooltip for Item 3' && (
-              <div className="tooltip-left">全屏显示</div>
-            )}
-            <i className='iconfont'>&#xec13;</i>
-          </li>
-          <li
-            onClick={() => handleItemClick('Item 4')}
-            onMouseEnter={() => handleMouseEnter('Tooltip for Item 4')}
-            onMouseLeave={handleMouseLeave}
-            className={selectedItem === 'Item 4' ? 'active' : ''}
-          >
-            {tooltipText === 'Tooltip for Item 4' && (
-              <div className="tooltip-left">鸟瞰图</div>
-            )}
-            <i className='iconfont'>&#xe71a;</i>
-          </li>
-        </ul>
-      </div>
-    );
-  };
+
+
+
+
+
 
 
 

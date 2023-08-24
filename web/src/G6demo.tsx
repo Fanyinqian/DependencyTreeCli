@@ -27,13 +27,13 @@ interface JsonData {
  * 鸟瞰图--kx
  * 
  */
-const chooseColor = 'blue';
-const bgC = {
+let chooseColor: any = 'blue';
+const bgC: any = {
     blue: '#eff8fa',
     dark: '#303030',
     gray: '#fff'
 }
-const defaultNodeColor = {
+const defaultNodeColor: any = {
     blue: {
         defaultNodeFill: '#84a1c8',
         defaultLabel: 'white',
@@ -53,7 +53,7 @@ const defaultNodeColor = {
         defaultOpacity: 1
     }
 }
-const StateColor = {
+const StateColor: any = {
     blue: {
         edgeHoverColor: "#8898ae",
         edgeClickFill: "#36445c",
@@ -91,7 +91,7 @@ const StateColor = {
         textWeight: 700
     }
 }
-const edgeStateStyles = {
+const edgeStateStyles: any = {
     hover: {
         stroke: StateColor[chooseColor].edgeHoverColor,
         lineWidth: 3,
@@ -108,7 +108,7 @@ const edgeStateStyles = {
     },
 }
 // 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
-const nodeStateStyles = {
+const nodeStateStyles: any = {
     selected: {
         fill: StateColor[chooseColor].nodeFill,
         stroke: StateColor[chooseColor].nodeSelectedStroke,
@@ -161,6 +161,11 @@ const processJsonData = (jsonData: JsonData) => {
         label: jsonData['treeRoot'].name,
         version: jsonData['treeRoot'].version,
         description: jsonData['treeRoot'].description,
+        style: {
+            width: 140,
+            height: 60,
+            fill: 'orange'
+        }
     })
     let findNodes = (name: any) => {
         if (jsonData[name]) {
@@ -172,11 +177,7 @@ const processJsonData = (jsonData: JsonData) => {
                         label: item,
                         version: jsonData[name].version,
                         description: jsonData[name].description,
-                        style: {
-                                      width: 140,
-                                      height: 60,
-                                      fill: '#dfbfff'
-                                  }
+
 
                     });
                     findNodes(item);
@@ -259,7 +260,32 @@ const minimap = new G6.Minimap({
     size: [200, 200],
     type: 'keyShape',
 });
-
+// 选择布局 力force 流程图dagre 辐射radial
+const layoutChoose: any = 'dagre';
+const layoutInfo: any = {
+    'force': {
+        // type: 'force',//radial dagre
+        preventOverlap: true,// 防止节点重叠
+        linkDistance: 100, // 指定边距离为100
+        nodeSize: 150,
+        tyle: {
+            'background-color': '#000',
+            color: 'white'
+        }
+    },
+    'radial': {
+        linkDistance: 600,
+        preventOverlap: true,// 防止节点重叠
+        unitRadius: 200,
+        nodeSize: 100,
+        nodeSpacing: 90,
+        // strictRadial: false
+    },
+    'dagre': {
+        rankdir: 'LR',
+        nodesep: 1,
+    }
+}
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
@@ -270,13 +296,8 @@ const demoGraph = () => {
         const graph = new G6.Graph({
             container: containerRef.current,
             layout: {
-                type: 'force',
-                preventOverlap: true,// 防止节点重叠
-                linkDistance: 400, // 指定边距离为100
-                nodeSize: 150,
-                tyle: {
-                        'background-color': '#000',
-                        color: 'white'}
+                type: layoutChoose,
+                ...layoutInfo[layoutChoose]
             },
             width: containerRef.current.clientWidth - 10,
             height: containerRef.current.clientHeight - 10,
@@ -321,7 +342,8 @@ const demoGraph = () => {
                   },
                   lineWidth: 2,
                   opacity: 0.3,
-              },
+
+              }, lineJoin: 'bevel',
               color: defaultNodeColor[chooseColor].defaultEdge,
           },
             modes: {
@@ -622,8 +644,11 @@ const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const [selectedItem, setSelectedItem] = useState('');
     const [tooltipText, setTooltipText] = useState('');
   
-    const handleItemClick = (item: string) => {
-      setSelectedItem(item);
+      const handleItemClick = (item: string) => {
+          setSelectedItem(item);
+          if (item === 'Item 1') {
+              chooseColor = 'gray';
+          }
     };
   
     const handleMouseEnter = (text: string) => {
@@ -645,7 +670,7 @@ const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
             className={selectedItem === 'Item 1' ? 'active' : ''}
           >
             {tooltipText === 'Tooltip for Item 1' && (
-              <div className="tooltip-left">切换模式</div>
+                        <div className="tooltip-left">切换样式</div>
             )}
             <i className='iconfont'>&#xe6ab;</i>
           </li>
