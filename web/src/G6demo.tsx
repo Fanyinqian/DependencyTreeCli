@@ -27,7 +27,7 @@ interface JsonData {
  * 鸟瞰图--kx
  * 
  */
-const chooseColor = 'blue';
+const chooseColor = 'dark';
 const bgC = {
     blue: '#eff8fa',
     dark: '#303030',
@@ -161,6 +161,11 @@ const processJsonData = (jsonData: JsonData) => {
         label: jsonData['treeRoot'].name,
         version: jsonData['treeRoot'].version,
         description: jsonData['treeRoot'].description,
+        style: {
+                      width: 140,
+                      height: 60,
+                      fill: '#dfbfff'
+                  }
     })
     let findNodes = (name: any) => {
         if (jsonData[name]) {
@@ -172,11 +177,7 @@ const processJsonData = (jsonData: JsonData) => {
                         label: item,
                         version: jsonData[name].version,
                         description: jsonData[name].description,
-                        style: {
-                                      width: 140,
-                                      height: 60,
-                                      fill: '#dfbfff'
-                                  }
+                        
 
                     });
                     findNodes(item);
