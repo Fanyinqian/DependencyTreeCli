@@ -178,7 +178,6 @@ const processJsonData = (jsonData: JsonData) => {
                         version: jsonData[name].version,
                         description: jsonData[name].description,
 
-
                     });
                     findNodes(item);
                 }
