@@ -454,7 +454,7 @@ const Sidebar: React.FC<SidebarProps> = ({ chooseColor, onColorChange }) => {
 };
 // 总的父组件
 const demoGraph = () => {
-    const containerRef = React.useRef<string | HTMLElement | HTMLDivElement>('');
+    const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
     const [chooseColor, setChooseColor] = useState('blue');
     const handleColorChange = (color: React.SetStateAction<string>) => {
@@ -527,14 +527,18 @@ const demoGraph = () => {
             }
         }
         console.log('useEffect', chooseColor);
+        console.log(containerRef);
 
         // let selectNode: any = { id: "treeRoot", label: "treeRoot" };
-        if (graphRef.current || !containerRef.current) {
+        if (graphRef.current) {
             graphRef.current?.destroy();
             // return;
         }
+        if (!containerRef.current) {
+            return;
+        }
         const graph = new G6.Graph({
-            container: containerRef.current,
+            container: containerRef.current as HTMLElement,
             layout: {
                 type: layoutChoose,
                 ...layoutInfo[layoutChoose]
