@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Component } from 'react';
 import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
 import G6, { Graph } from '@antv/g6';
@@ -27,7 +27,7 @@ interface JsonData {
  * 鸟瞰图--kx
  * 
  */
-let chooseColor: any = 'blue';
+// let chooseColor: any = 'blue';
 const bgC: any = {
     blue: '#eff8fa',
     dark: '#303030',
@@ -91,66 +91,7 @@ const StateColor: any = {
         textWeight: 700
     }
 }
-const edgeStateStyles: any = {
-    hover: {
-        stroke: StateColor[chooseColor].edgeHoverColor,
-        lineWidth: 3,
-        shadowColor: "#dce3e4",
-        shadowBlur: 50,
-        color: StateColor[chooseColor].edgeHoverColor,
-        opacity: .7,
-    },
-    clicked: {
-        lineWidth: 3,
-        // color: StateColor[chooseColor].edgeClickFill,
-        stroke: StateColor[chooseColor].edgeClickFill,
-        opacity: StateColor[chooseColor].edgeClickOpacity,
-    },
-}
-// 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
-const nodeStateStyles: any = {
-    selected: {
-        fill: StateColor[chooseColor].nodeFill,
-        stroke: StateColor[chooseColor].nodeSelectedStroke,
-        lineWidth: 3,
-        // shadowColor: "rgb(95, 149, 255)",
-        // shadowBlur: 10,
-        "text-shape": {
-            fontWeight: StateColor[chooseColor].textWeight
-        },
-        "shadowColor": "#aeaeae",
-        "shadowBlur": 10,
-        opacity: StateColor[chooseColor].edgeClickOpacity,
-    },
-    // 高亮
-    highlight: {
-        fill: StateColor[chooseColor].nodeHighlightFill,
-        // "stroke": "#4572d9",
-        "lineWidth": 2,
-        "text-shape": {
-            "fontWeight": StateColor[chooseColor].textWeight
-        },
-        "stroke": StateColor[chooseColor].nodeHighlightstroke,
-        opacity: StateColor[chooseColor].edgeClickOpacity
-    },
-    hover: {
-        // stroke: "yellow",
-        // "fill": "rgb(247, 250, 255)",
-        "stroke": StateColor[chooseColor].nodeHoverStroke,
-        // "lineWidth": 2,
-        "shadowColor": "#d7b140",
-        "shadowBlur": 25
-    },
-    target: {
-        fill: "rgb(255, 255, 255)",
-        stroke: "#000",
-        lineWidth: 4,
-        shadowBlur: 10,
-        "text-shape": {
-            fontWeight: 500
-        }
-    }
-}
+
 
 // 数据
 const processJsonData = (jsonData: JsonData) => {
@@ -285,13 +226,313 @@ const layoutInfo: any = {
         nodesep: 1,
     }
 }
-const demoGraph = () => {
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    let graphRef = React.useRef<Graph | undefined>(undefined);
+// 搜索部分
+interface SearchProps {
+    graph: Graph;
+}
+const Search = ({ graph }: SearchProps) => {
+    const [searchText, setSearchText] = useState('');
+    const [searchResults, setSearchResults] = useState<string[]>([]);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const lastTargetNodeId = useRef<string | null>(null);
+    const searchResultsContainerRef = useRef<HTMLDivElement | null>(null);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputText = e.target.value;
+        setSearchText(inputText);
+
+        if (inputText === '') {
+            setSearchResults([]);
+            setSelectedIndex(-1);
+            return;
+        }
+
+        const data = processJsonData(JSON_data);
+        const targetNodes = data.nodes.filter((node: any) =>
+            node.label.includes(inputText)
+        );
+        const results = targetNodes.map((node: any) => node.id);
+        setSearchResults(results);
+        setSelectedIndex(-1);
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (searchResults.length > 0) {
+                if (selectedIndex === -1) {
+                    setSelectedIndex(0);
+                }
+
+                handleSearch();
+            } else {
+                // 搜索结果为空时，直接执行搜索
+                handleSearch();
+            }
+        } else if (e.code.startsWith('Digit') && searchResults.length > 0) {
+            e.preventDefault();
+            const index = Number(e.key) - 1;
+            setSelectedIndex(index >= 0 && index < searchResults.length ? index : -1);
+            handleSearch(); // 在按下数字键后，执行 handleSearch() 完成居中操作
+        }
+    };
+
+    const handleSearch = () => {
+        if (selectedIndex !== -1) {
+            const selectedNodeId = searchResults[selectedIndex];
+            const node = graph.findById(selectedNodeId);
+            graph.setItemState(node, 'target', true);
+
+            if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
+                const lastNode = graph.findById(lastTargetNodeId.current);
+                graph.clearItemStates(lastNode);
+            }
+
+            console.log('找到内容', selectedNodeId);
+            graph.focusItem(selectedNodeId);
+
+            lastTargetNodeId.current = selectedNodeId;
+
+            // 如果是最后一个节点，则重置选定的下标
+            if (selectedIndex === searchResults.length - 1) {
+                setSelectedIndex(-1);
+            }
+        } else if (searchResults.length === 1) {
+            const selectedNodeId = searchResults[0];
+            const node = graph.findById(selectedNodeId);
+            graph.setItemState(node, 'target', true);
+
+            if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
+                const lastNode = graph.findById(lastTargetNodeId.current);
+                graph.clearItemStates(lastNode);
+            }
+
+            console.log('找到内容', selectedNodeId);
+            graph.focusItem(selectedNodeId);
+
+            lastTargetNodeId.current = selectedNodeId;
+
+            // 重置选定的下标
+            setSelectedIndex(0);
+        } else {
+            console.log('未找到目标节点');
+        }
+    };
+
+    const handleOutsideClick = (e: MouseEvent) => {
+        if (
+            searchResultsContainerRef.current &&
+            !searchResultsContainerRef.current.contains(e.target as Node)
+        ) {
+            setSearchResults([]);
+            setSelectedIndex(-1);
+        }
+    };
 
     useEffect(() => {
+        document.addEventListener('click', handleOutsideClick);
+        return () => {
+            document.removeEventListener('click', handleOutsideClick);
+        };
+    }, []);
+
+    return (
+        <>
+            <div className='search'>
+                <div className='searchCon'>
+                    <input
+                        placeholder='输入搜索内容'
+                        type='text'
+                        value={searchText}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                    />
+                    <div className='font' onClick={handleSearch}>
+                        <i className='iconfont'>&#xe61a;</i>
+                    </div>
+                </div>
+                {searchResults.length > 0 && (
+                    <div ref={searchResultsContainerRef} className='searchResults'>
+                        {searchResults.map((result, index) => (
+                            <div
+                                key={result}
+                                className={`resultItem ${index === selectedIndex ? 'selected' : ''
+                                    }`}
+                                onClick={() => {
+                                    setSelectedIndex(index);
+                                    handleSearch();
+                                }}
+                            >
+                                {result}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+};
+interface SidebarProps {
+    chooseColor: string;
+    onColorChange: (color: string) => void;
+}
+//侧边栏部分
+const Sidebar: React.FC<SidebarProps> = ({ chooseColor, onColorChange }) => {
+    const [selectedItem, setSelectedItem] = useState('');
+    const [tooltipText, setTooltipText] = useState('');
+
+    const handleItemClick = (item: string) => {
+        setSelectedItem(item);
+        if (item === 'Item 1') {
+            onColorChange('dark'); // 在颜色选择变化时调用父组件的回调函数
+        }
+    };
+
+    const handleMouseEnter = (text: string) => {
+        setTooltipText(text);
+    };
+
+    const handleMouseLeave = () => {
+        setTooltipText('');
+    };
+
+    return (
+        <div className="sidebar">
+            {/* {tooltipText && <div className="tooltip">{tooltipText}</div>} */}
+            <ul>
+                <li
+                    onClick={() => handleItemClick('Item 1')}
+                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 1')}
+                    onMouseLeave={handleMouseLeave}
+                    className={selectedItem === 'Item 1' ? 'active' : ''}
+                >
+                    {tooltipText === 'Tooltip for Item 1' && (
+                        <div className="tooltip-left">切换样式</div>
+                    )}
+                    <i className='iconfont'>&#xe6ab;</i>
+                </li>
+                <Link to={'/dev'}>
+
+                    <li
+                        onClick={() => handleItemClick('Item 2')}
+                        onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
+                        onMouseLeave={handleMouseLeave}
+                        className={selectedItem === 'Item 2' ? 'active' : ''}
+                    >
+                        {tooltipText === 'Tooltip for Item 2' && (
+                            <div className="tooltip-left">切换dev</div>
+                        )}
+                        <i className='iconfont'>&#xe6c1;</i>
+                    </li>
+                </Link>
+
+                <li
+                    onClick={() => handleItemClick('Item 3')}
+                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
+                    onMouseLeave={handleMouseLeave}
+                    className={selectedItem === 'Item 3' ? 'active' : ''}
+                >
+                    {tooltipText === 'Tooltip for Item 3' && (
+                        <div className="tooltip-left">全屏显示</div>
+                    )}
+                    <i className='iconfont'>&#xec13;</i>
+                </li>
+                <li
+                    onClick={() => handleItemClick('Item 4')}
+                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 4')}
+                    onMouseLeave={handleMouseLeave}
+                    className={selectedItem === 'Item 4' ? 'active' : ''}
+                >
+                    {tooltipText === 'Tooltip for Item 4' && (
+                        <div className="tooltip-left">鸟瞰图</div>
+                    )}
+                    <i className='iconfont'>&#xe71a;</i>
+                </li>
+            </ul>
+        </div>
+    );
+};
+// 总的父组件
+const demoGraph = () => {
+    const containerRef = React.useRef<string | HTMLElement | HTMLDivElement>('');
+    let graphRef = React.useRef<Graph | undefined>(undefined);
+    const [chooseColor, setChooseColor] = useState('blue');
+    const handleColorChange = (color: React.SetStateAction<string>) => {
+        setChooseColor(color); // 更新父组件的颜色状态
+    };
+    console.log('chooseColor', chooseColor);
+    let abc = {
+        hover: {
+            stroke: StateColor[chooseColor].edgeHoverColor,
+            lineWidth: 3,
+            shadowColor: "#dce3e4",
+            shadowBlur: 50,
+            color: StateColor[chooseColor].edgeHoverColor,
+            opacity: .7,
+        },
+        clicked: {
+            lineWidth: 3,
+            // color: StateColor[chooseColor].edgeClickFill,
+            stroke: StateColor[chooseColor].edgeClickFill,
+            opacity: StateColor[chooseColor].edgeClickOpacity,
+        },
+    }
+    useEffect(() => {
+        console.log('chooseColor', chooseColor);
+        let edgeStateStyles: any;
+        edgeStateStyles = Object.assign({}, abc);
+        let nodeStateStyles: any;
+        // 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
+        nodeStateStyles = {
+            selected: {
+                fill: StateColor[chooseColor].nodeFill,
+                stroke: StateColor[chooseColor].nodeSelectedStroke,
+                lineWidth: 3,
+                // shadowColor: "rgb(95, 149, 255)",
+                // shadowBlur: 10,
+                "text-shape": {
+                    fontWeight: StateColor[chooseColor].textWeight
+                },
+                "shadowColor": "#aeaeae",
+                "shadowBlur": 10,
+                opacity: StateColor[chooseColor].edgeClickOpacity,
+            },
+            // 高亮
+            highlight: {
+                fill: StateColor[chooseColor].nodeHighlightFill,
+                // "stroke": "#4572d9",
+                "lineWidth": 2,
+                "text-shape": {
+                    "fontWeight": StateColor[chooseColor].textWeight
+                },
+                "stroke": StateColor[chooseColor].nodeHighlightstroke,
+                opacity: StateColor[chooseColor].edgeClickOpacity
+            },
+            hover: {
+                // stroke: "yellow",
+                // "fill": "rgb(247, 250, 255)",
+                "stroke": StateColor[chooseColor].nodeHoverStroke,
+                // "lineWidth": 2,
+                "shadowColor": "#d7b140",
+                "shadowBlur": 25
+            },
+            target: {
+                fill: "rgb(255, 255, 255)",
+                stroke: "#000",
+                lineWidth: 4,
+                shadowBlur: 10,
+                "text-shape": {
+                    fontWeight: 500
+                }
+            }
+        }
+        console.log('useEffect', chooseColor);
+
         // let selectNode: any = { id: "treeRoot", label: "treeRoot" };
-        if (graphRef.current || !containerRef.current) return;
+        if (graphRef.current || !containerRef.current) {
+            graphRef.current?.destroy();
+            // return;
+        }
         const graph = new G6.Graph({
             container: containerRef.current,
             layout: {
@@ -470,253 +711,14 @@ const demoGraph = () => {
         console.log(graphRef);
         graphRef.current = graph;
 
-    }, [])
+    }, [chooseColor])
     return (<>
         {/* <h1>demo2-tsx</h1> */}
-
-
-
-
         <div id="search-container"></div>
-        <Sidebar></Sidebar>
-
-
-
+        <Sidebar chooseColor={chooseColor} onColorChange={handleColorChange}></Sidebar>
         <div ref={containerRef} style={{ width: '100%', height: '100vh', backgroundColor: bgC[chooseColor] }}></div>
 
     </>
     );
 }
-
-
-// 搜索部分
-interface SearchProps {
-    graph: Graph;
-}
-const Search = ({ graph }: SearchProps) => {
-    const [searchText, setSearchText] = useState('');
-    const [searchResults, setSearchResults] = useState<string[]>([]);
-    const [selectedIndex, setSelectedIndex] = useState(-1);
-    const lastTargetNodeId = useRef<string | null>(null);
-    const searchResultsContainerRef = useRef<HTMLDivElement | null>(null);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const inputText = e.target.value;
-        setSearchText(inputText);
-
-        if (inputText === '') {
-            setSearchResults([]);
-            setSelectedIndex(-1);
-            return;
-        }
-
-        const data = processJsonData(JSON_data);
-        const targetNodes = data.nodes.filter((node: any) =>
-            node.label.includes(inputText)
-        );
-        const results = targetNodes.map((node: any) => node.id);
-        setSearchResults(results);
-        setSelectedIndex(-1);
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            if (searchResults.length > 0) {
-                if (selectedIndex === -1) {
-                    setSelectedIndex(0);
-                }
-
-                handleSearch();
-            } else {
-                // 搜索结果为空时，直接执行搜索
-                handleSearch();
-            }
-        } else if (e.code.startsWith('Digit') && searchResults.length > 0) {
-            e.preventDefault();
-            const index = Number(e.key) - 1;
-            setSelectedIndex(index >= 0 && index < searchResults.length ? index : -1);
-            handleSearch(); // 在按下数字键后，执行 handleSearch() 完成居中操作
-        }
-    };
-
-    const handleSearch = () => {
-        if (selectedIndex !== -1) {
-            const selectedNodeId = searchResults[selectedIndex];
-            const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
-
-            if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
-                const lastNode = graph.findById(lastTargetNodeId.current);
-                graph.clearItemStates(lastNode);
-            }
-
-            console.log('找到内容', selectedNodeId);
-            graph.focusItem(selectedNodeId);
-
-            lastTargetNodeId.current = selectedNodeId;
-
-            // 如果是最后一个节点，则重置选定的下标
-            if (selectedIndex === searchResults.length - 1) {
-                setSelectedIndex(-1);
-            }
-        } else if (searchResults.length === 1) {
-            const selectedNodeId = searchResults[0];
-            const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
-
-            if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
-                const lastNode = graph.findById(lastTargetNodeId.current);
-                graph.clearItemStates(lastNode);
-            }
-
-            console.log('找到内容', selectedNodeId);
-            graph.focusItem(selectedNodeId);
-
-            lastTargetNodeId.current = selectedNodeId;
-
-            // 重置选定的下标
-            setSelectedIndex(0);
-        } else {
-            console.log('未找到目标节点');
-        }
-    };
-
-    const handleOutsideClick = (e: MouseEvent) => {
-        if (
-            searchResultsContainerRef.current &&
-            !searchResultsContainerRef.current.contains(e.target as Node)
-        ) {
-            setSearchResults([]);
-            setSelectedIndex(-1);
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener('click', handleOutsideClick);
-        return () => {
-            document.removeEventListener('click', handleOutsideClick);
-        };
-    }, []);
-
-    return (
-        <>
-            <div className='search'>
-                <div className='searchCon'>
-                    <input
-                        placeholder='输入搜索内容'
-                        type='text'
-                        value={searchText}
-                        onChange={handleInputChange}
-                        onKeyPress={handleKeyPress}
-                    />
-                    <div className='font' onClick={handleSearch}>
-                        <i className='iconfont'>&#xe61a;</i>
-                    </div>
-                </div>
-                {searchResults.length > 0 && (
-                    <div ref={searchResultsContainerRef} className='searchResults'>
-                        {searchResults.map((result, index) => (
-                            <div
-                                key={result}
-                                className={`resultItem ${index === selectedIndex ? 'selected' : ''
-                                    }`}
-                                onClick={() => {
-                                    setSelectedIndex(index);
-                                    handleSearch();
-                                }}
-                            >
-                                {result}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </>
-    );
-};
-
-
-
-
-
-//侧边栏部分
-const Sidebar: React.FC = () => {
-    const [selectedItem, setSelectedItem] = useState('');
-    const [tooltipText, setTooltipText] = useState('');
-
-    const handleItemClick = (item: string) => {
-        setSelectedItem(item);
-        if (item === 'Item 1') {
-            chooseColor = 'gray';
-        }
-    };
-
-    const handleMouseEnter = (text: string) => {
-        setTooltipText(text);
-    };
-
-    const handleMouseLeave = () => {
-        setTooltipText('');
-    };
-
-    return (
-        <div className="sidebar">
-            {/* {tooltipText && <div className="tooltip">{tooltipText}</div>} */}
-            <ul>
-                <li
-                    onClick={() => handleItemClick('Item 1')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 1')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 1' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 1' && (
-                        <div className="tooltip-left">切换样式</div>
-                    )}
-                    <i className='iconfont'>&#xe6ab;</i>
-                </li>
-                <Link to={'/dev'}>
-
-                    <li
-                        onClick={() => handleItemClick('Item 2')}
-                        onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
-                        onMouseLeave={handleMouseLeave}
-                        className={selectedItem === 'Item 2' ? 'active' : ''}
-                    >
-                        {tooltipText === 'Tooltip for Item 2' && (
-                            <div className="tooltip-left">切换dev</div>
-                        )}
-                        <i className='iconfont'>&#xe6c1;</i>
-                    </li>
-                </Link>
-
-                <li
-                    onClick={() => handleItemClick('Item 3')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 3' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 3' && (
-                        <div className="tooltip-left">全屏显示</div>
-                    )}
-                    <i className='iconfont'>&#xec13;</i>
-                </li>
-                <li
-                    onClick={() => handleItemClick('Item 4')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 4')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 4' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 4' && (
-                        <div className="tooltip-left">鸟瞰图</div>
-                    )}
-                    <i className='iconfont'>&#xe71a;</i>
-                </li>
-            </ul>
-        </div>
-    );
-};
-
-
-
 export default demoGraph;
