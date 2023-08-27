@@ -1,0 +1,60 @@
+.sidebar{
+  position: absolute;
+  right: 0;
+  top: 30%;
+  
+ ul{
+  position: relative;
+  list-style: none;
+  width: 90px;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(35,37,42,.14);
+  border-radius: 4px;
+}
+.active i{
+  color: #9a9898;
+}
+
+ li{
+  padding: 20px 10px;
+  cursor: pointer;
+  text-align: center;
+}
+  i{
+  font-size: 40px;
+}
+
+.tooltip-left{
+  text-align: right;
+  position: absolute;
+  margin-left: -125px;
+  padding: 20px;
+  margin-top: -10px;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(35,37,42,.14);
+
+}
+
+.tooltip-left::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border: solid transparent;
+  border-width: 10px;
+  border-left-color: #948181; /* 右箭头颜色 */
+}
+}
+
+.selectedNode {
+  width: 120px;
+  height: 40px;
+  background-color: blue;
+  border: 3px solid #3e6f81;
+  padding: 2px 3px;
+  border-radius: 2px;
+  line-height: 34px;
+  text-align: center;
+  /* 添加其他样式属性 */
+}
