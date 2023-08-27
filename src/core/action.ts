@@ -1,5 +1,6 @@
 const inquirer = require("inquirer");
 const Loading = require("../utils/loading");
+const Saving = require("../utils/saving");
 // @ts-ignore
 const chalk = require("chalk");
 const HOST = "8243";
@@ -8,7 +9,7 @@ const HOST = "8243";
  * 定义cli为命令提供的处理逻辑
  */
 const Action = {
-  async analyze(num:number) {
+  async analyze(num: number) {
     // 分析依赖，生成依赖树..
     const res = await Loading(num);
     // 打开内置网页
@@ -41,16 +42,34 @@ const Action = {
         .then(async (ans: { depth: any }) => {
           console.log("深度限制为:", ans.depth);
           // 层级深度逻辑代码..
-          this.analyze(ans.depth)
+          this.analyze(ans.depth);
         });
     } else {
       console.log("深度限制为:", depth);
       // 层级深度逻辑代码..
-      this.analyze(depth)
+      this.analyze(depth);
     }
   },
-  saveJSON() {
-    console.log("saveJSON");
+  saveJSON(path: any) {
+    let targetPath = path.json;
+    if (targetPath === true) {
+      inquirer
+        .prompt([
+          {
+            type: "string",
+            name: "path",
+            message: "请输入要保存的位置路径：",
+          },
+        ])
+        .then(async (save: { path: any }) => {
+          console.log("当前保存路径为:", save.path);
+          Saving(save.path);
+        });
+    } else {
+      targetPath = targetPath.slice(1, -1);
+      console.log("当前保存路径为:", targetPath);
+      Saving(targetPath);
+    }
   },
 };
 
