@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, Component } from 'react';
 import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
-import G6, { Graph } from '@antv/g6';
+import G6, { Graph, Layout } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
 import { Link } from 'react-router-dom';
@@ -201,7 +201,7 @@ const minimap = new G6.Minimap({
     type: 'keyShape',
 });
 // 选择布局 力force 流程图dagre 辐射radial
-const layoutChoose: any = 'force';
+// const layoutChoose: any = 'force';
 const layoutInfo: any = {
     'force': {
         // type: 'force',//radial dagre
@@ -372,120 +372,144 @@ const Search = ({ graph }: SearchProps) => {
     );
 };
 interface SidebarProps {
-    chooseColor: string;
+    // chooseColor: string;
     onColorChange: (color: string) => void;
+    onLayoutChange: (layout: string) => void;
 }
 //侧边栏部分
-const Sidebar: React.FC<SidebarProps> = ({ chooseColor, onColorChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
     const [activeItemId, setActiveItemId] = useState(null);
     const containerRef = useRef(null);
-    
+
     const listItems = [
-      {
-        id: 1,
-        title: <span><i className='iconfont'>&#xe6ab;</i><br/>样式</span>,
-        subcontents: [
-          {
+        {
             id: 1,
-            text: 'Subcontent 1',
-          },
-          {
+            title: <span><i className='iconfont'>&#xe6ab;</i><br />样式</span>,
+            subcontents: [
+                {
+                    id: 1,
+                    text: 'blue',
+                },
+                {
+                    id: 2,
+                    text: 'gray',
+                },
+                {
+                    id: 3,
+                    text: 'dark',
+                },
+            ]
+        },
+        {
             id: 2,
-            text: 'Subcontent 2',
-          },
-          {
-            id: 3,
-            text: 'Subcontent 3',
-          },
-        ]
-      },
-      {
-        id: 2,
-        title: <span><i className='iconfont'>&#xe6c1;</i><br/>布局</span>,
-        subcontents: [
-          {
-            id: 3,
-            text: 'Subcontent 3',
-          },
-          {
-            id: 4,
-            text: 'Subcontent 4',
-          }
-        ]
-      },  
+            title: <span><i className='iconfont'>&#xe6c1;</i><br />布局</span>,
+            subcontents: [
+                {
+                    id: 4,
+                    text: 'Force',//Force力导向图布局
+                },
+                {
+                    id: 5,
+                    text: 'Radial',// 辐射布局
+                }, {
+                    id: 6,
+                    text: 'Dagre',// 流程图布局
+                }
+            ]
+        },
     ];
-  
+
     const activeItem = listItems.find((item) => item.id === activeItemId);
-  
+
     const handleClick = (itemId: any) => {
-      if (itemId === activeItemId) {
-        setActiveItemId(null);
-      } else {
-        setActiveItemId(itemId);
-        //切换
-        if (itemId === 1) {
-            onColorChange('gray'); // 在颜色选择变化时调用父组件的回调函数
+        console.log(itemId);
+        if (itemId === activeItemId) {
+            setActiveItemId(null);
+        } else {
+            setActiveItemId(itemId);
+            //切换
+            // if (itemId === 1) {
+
+            // }
         }
-      }
     };
-  
+    const chooseFun = (itemId: Number) => {
+        if (itemId == 1) {
+            onColorChange('blue'); // 在颜色选择变化时调用父组件的回调函数
+        } if (itemId == 2) {
+            onColorChange('gray');
+        } if (itemId == 3) {
+            onColorChange('dark');
+        } if (itemId == 4) {
+            onLayoutChange('force');
+        } if (itemId == 5) {
+            onLayoutChange('radial');
+        } if (itemId == 6) {
+            onLayoutChange('dagre');
+        }
+
+    }
     //点击消失
     useEffect(() => {
-      const handleOutsideClick = (event: MouseEvent) => {
-        if (containerRef.current && !(containerRef.current as HTMLDivElement).contains(event.target as Node)) {
-          setActiveItemId(null);
-        }
-      };
-    
-      document.addEventListener('mousedown', handleOutsideClick);
-    
-      return () => {
-        document.removeEventListener('mousedown', handleOutsideClick);
-      };
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (containerRef.current && !(containerRef.current as HTMLDivElement).contains(event.target as Node)) {
+                setActiveItemId(null);
+            }
+        };
+
+        document.addEventListener('mouseenter', handleOutsideClick);
+
+        return () => {
+            document.removeEventListener('mouseleave', handleOutsideClick);
+        };
     }, []);
-  
+
     return (
-      <div className='sidebar'>
-        <ul>
-          {listItems.map((item) => (
-            <li
-              key={item.id}
-              onClick={() => handleClick(item.id)}
-              className={item.id === activeItemId ? 'active' : ''}
-            >
-              {item.title}
-            </li>
-          ))}
-        </ul>
-        <div className={`container ${activeItem ? 'active' : ''}`} ref={containerRef}>
-          {activeItem && (
-            <div className='tooltip-container'>
-              <div className='tooltip-left'>
-                {activeItem.subcontents.map((subcontent) => (
-                  <div
-                    key={subcontent.id}
-                    className='rect-tip'
-                    // 各个内容的id 
-                    onClick={() => console.log(`Clicked ${subcontent.id}`)}
-                  >
-                    <p>{subcontent.text}</p>
-                  </div>
+        <div className='sidebar'>
+            <ul>
+                {listItems.map((item) => (
+                    <li
+                        key={item.id}
+                        onClick={() => handleClick(item.id)}
+                        className={item.id === activeItemId ? 'active' : ''}
+                    >
+                        {item.title}
+                    </li>
                 ))}
-              </div>
+            </ul>
+            <div className={`container ${activeItem ? 'active' : ''}`} ref={containerRef}>
+                {activeItem && (
+                    <div className='tooltip-container'>
+                        <div className='tooltip-left'>
+                            {activeItem.subcontents.map((subcontent) => (
+                                <div
+                                    key={subcontent.id}
+                                    className='rect-tip'
+                                    // 各个内容的id
+                                    onClick={() => { console.log(`Clicked ${subcontent.id}`); chooseFun(subcontent.id) }}
+                                >
+                                    <p>{subcontent.text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-          )}
         </div>
-      </div>
     );
-  };
+};
 // 总的父组件
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     let graphRef = React.useRef<Graph | undefined>(undefined);
     const [chooseColor, setChooseColor] = useState('blue');
+    const [chooseLayout, setChooseLayout] = useState('force');
     const handleColorChange = (color: React.SetStateAction<string>) => {
         setChooseColor(color); // 更新父组件的颜色状态
     };
+    const handleLayoutChange = (layout: React.SetStateAction<string>) => {
+        setChooseLayout(layout);
+    }
     console.log('chooseColor', chooseColor);
     let abc = {
         hover: {
@@ -566,8 +590,8 @@ const demoGraph = () => {
         const graph = new G6.Graph({
             container: containerRef.current as HTMLElement,
             layout: {
-                type: layoutChoose,
-                ...layoutInfo[layoutChoose]
+                type: chooseLayout,
+                ...layoutInfo[chooseLayout]
             },
             width: containerRef.current.clientWidth - 10,
             height: containerRef.current.clientHeight - 10,
@@ -741,11 +765,11 @@ const demoGraph = () => {
         console.log(graphRef);
         graphRef.current = graph;
 
-    }, [chooseColor])
+    }, [chooseColor, chooseLayout])
     return (<>
         {/* <h1>demo2-tsx</h1> */}
         <div id="search-container"></div>
-        <Sidebar chooseColor={chooseColor} onColorChange={handleColorChange}></Sidebar>
+        <Sidebar onColorChange={handleColorChange} onLayoutChange={handleLayoutChange}></Sidebar>
         <div ref={containerRef} style={{ width: '100%', height: '100vh', backgroundColor: bgC[chooseColor] }}></div>
 
     </>
