@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import JSON_data from '../public/data1.json';
+import JSON_data from '../public/test.json';
 import G6, { Graph, IEdge, IG6GraphEvent, Item, StateStyles } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
@@ -187,42 +187,47 @@ const processJsonData = (jsonData: JsonData): GraphData => {
 // });
 
 // 悬浮节点 出现信息
-const tooltip = new G6.Tooltip({
-    offsetX: 10,
-    offsetY: 10,
-    fixToNode: [1, 0.5],
-    // the types of items that allow the tooltip show up
-    // 允许出现 tooltip 的 item 类型
-    itemTypes: ['node', 'edge'],
-    // custom the tooltip's content
-    // 自定义 tooltip 内容
-    getContent: (e: IG6GraphEvent | undefined) => {
-        if (!e || !e.item) return '';
-        const outDiv: HTMLDivElement = document.createElement('div');
-        outDiv.style.width = 'fit-content';
-        outDiv.style.height = 'fit-content';
-        const model = e.item?.getModel();
-        if (e.item.getType() === 'node') {
-            outDiv.innerHTML = `
+const createToolTip = function () {
+    return new G6.Tooltip({
+        offsetX: 10,
+        offsetY: 10,
+        fixToNode: [1, 0.5],
+        // the types of items that allow the tooltip show up
+        // 允许出现 tooltip 的 item 类型
+        itemTypes: ['node', 'edge'],
+        // custom the tooltip's content
+        // 自定义 tooltip 内容
+        getContent: (e: IG6GraphEvent | undefined) => {
+            if (!e || !e.item) return '';
+            const outDiv: HTMLDivElement = document.createElement('div');
+            outDiv.style.width = 'fit-content';
+            outDiv.style.height = 'fit-content';
+            const model = e.item?.getModel();
+            if (e.item.getType() === 'node') {
+                outDiv.innerHTML = `
                 名称：${model.id}<br/>
                 版本：${model.version ? model.version : '暂无信息'}<br/>
                 描述：${model.description ? model.description : '暂无信息'}
             `;
-        } else {
-            const source = (e.item as IEdge).getSource();
-            const target = (e.item as IEdge).getTarget();
-            outDiv.innerHTML = `来源：${source.getModel().id}<br/>去向：${target.getModel().id}`;
-        }
-        return outDiv;
-    },
-});
+            } else {
+                const source = (e.item as IEdge).getSource();
+                const target = (e.item as IEdge).getTarget();
+                outDiv.innerHTML = `来源：${source.getModel().id}<br/>去向：${target.getModel().id}`;
+            }
+            return outDiv;
+        },
+    })
+}
+
 //虚线运动
 
 // 鸟瞰图组件
-const minimap = new G6.Minimap({
-    size: [200, 200],
-    type: 'keyShape',
-});
+const createMiniMap = function () {
+    return new G6.Minimap({
+        size: [200, 200],
+        type: 'keyShape',
+    })
+}
 // 选择布局 力force 流程图dagre 辐射radial
 // const layoutChoose: string = 'force';
 
@@ -311,7 +316,7 @@ const Search = ({ graph }: SearchProps) => {
         if (selectedIndex !== -1) {
             const selectedNodeId = searchResults[selectedIndex];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
+            graph.setItemState(node, 'highlight', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
@@ -330,7 +335,7 @@ const Search = ({ graph }: SearchProps) => {
         } else if (searchResults.length === 1) {
             const selectedNodeId = searchResults[0];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
+            graph.setItemState(node, 'highlight', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
@@ -698,7 +703,7 @@ const DemoGraph: React.FC<SidebarProps> = () => {
             },
             // plugins: [minimap]
             // 定义插件
-            plugins: [tooltip, minimap],//悬浮显示信息  暂时是undefined
+            plugins: [createToolTip(), createMiniMap()],//悬浮显示信息  暂时是undefined
             edgeStateStyles: edgeStateStyles,
             nodeStateStyles: nodeStateStyles,
         });
