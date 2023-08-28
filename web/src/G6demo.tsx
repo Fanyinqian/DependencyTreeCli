@@ -268,7 +268,15 @@ const Search = ({ graph }: SearchProps) => {
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const lastTargetNodeId = useRef<string | null>(null);
     const searchResultsContainerRef = useRef<HTMLDivElement | null>(null);
+    const [searchVisible, setSearchVisible] = useState(false);
 
+  const handleSearchIconClick = () => {
+    setSearchVisible(true);
+  };
+
+  const handleDeleteIconClick = () => {
+    setSearchVisible(false);
+  };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputText = e.target.value;
         setSearchText(inputText);
@@ -316,7 +324,7 @@ const Search = ({ graph }: SearchProps) => {
         if (selectedIndex !== -1) {
             const selectedNodeId = searchResults[selectedIndex];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'highlight', true);
+            graph.setItemState(node, 'target', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
@@ -372,41 +380,57 @@ const Search = ({ graph }: SearchProps) => {
     }, []);
 
     return (
-        <>
-            <div className='search'>
-                <div className='searchCon'>
-                    <input
-                        placeholder='输入搜索内容'
-                        type='text'
-                        value={searchText}
-                        onChange={handleInputChange}
-                        onKeyDown={handleKeyPress}
-                    />
-                    <div className='font' onClick={handleSearch}>
-                        <i className='iconfont'>&#xe61a;</i>
-                    </div>
-                </div>
-                {searchResults.length > 0 && (
-                    <div ref={searchResultsContainerRef} className='searchResults'>
-                        {searchResults.map((result, index) => (
-                            <div
-                                key={result}
-                                className={`resultItem ${index === selectedIndex ? 'selected' : ''
-                                    }`}
-                                onClick={() => {
-                                    setSelectedIndex(index);
-                                    handleSearch();
-                                }}
-                            >
-                                {result}
-                            </div>
-                        ))}
-                    </div>
-                )}
+        <div className='search'>
+          {!searchVisible && (
+            <div className='searchIconContainer'>
+              <i className='iconfont searchIcon' onClick={handleSearchIconClick}>
+                &#xe61a;
+              </i>
             </div>
-        </>
-    );
+          )}
+          {searchVisible && (
+            <div className='searchCon'>
+              <input
+                placeholder='输入搜索内容'
+                type='text'
+                value={searchText}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyPress}
+                className='searchInput'
+              />
+              <div className="font">
+                <div className='deleteButton' onClick={handleDeleteIconClick}>
+                    <i className='iconfont deleteIcon'>&#xe60e;</i>
+                </div>
+                <div className='searchButton' onClick={handleSearch}>
+                    <i className='iconfont searchIcon'>&#xe61a;</i>
+                </div>
+              </div>
+               
+             
+            </div>
+          )}
+          {searchResults.length > 0 && searchVisible && (
+            <div ref={searchResultsContainerRef} className='searchResults'>
+              {searchResults.map((result, index) => (
+                <div
+                  key={result}
+                  className={`resultItem ${index === selectedIndex ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    handleSearch();
+                  }}
+                >
+                  {result}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
 };
+
+
 interface SidebarProps {
     // chooseColor: string;
     onColorChange: (color: string) => void;
