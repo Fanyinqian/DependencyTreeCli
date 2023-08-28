@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
-import G6, { Graph, IEdge, IG6GraphEvent, Item, StateStyles, Layout } from '@antv/g6';
+import G6, { Graph, IEdge, IG6GraphEvent, Item, StateStyles } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 // 引入样式
 import './G6demo.scss'
 import { GraphData, NodeConfig } from "@antv/g6-core/lib/types";
