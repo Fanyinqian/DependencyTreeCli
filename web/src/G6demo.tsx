@@ -281,7 +281,7 @@ const Search = ({ graph }: SearchProps) => {
         if (selectedIndex !== -1) {
             const selectedNodeId = searchResults[selectedIndex];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
+            graph.setItemState(node, 'click', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
@@ -300,8 +300,7 @@ const Search = ({ graph }: SearchProps) => {
         } else if (searchResults.length === 1) {
             const selectedNodeId = searchResults[0];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
-
+            graph.setItemState(node, 'highlight', true);
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
                 graph.clearItemStates(lastNode);
