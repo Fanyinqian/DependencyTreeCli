@@ -29,8 +29,9 @@
   top: 50%;
   left: -20%;
   transform: translate(-100%, -50%);
-  text-align: right;
+//   text-align: right;
   padding: 20px;
+  text-align: right;
   background-color: #fff;
   box-shadow: 0 0 8px rgba(35,37,42,.14);
 }
@@ -46,6 +47,11 @@
 }
 
 }
+.rect-tip:hover{
+  background-color: aqua;
+}
+
+
 .tooltip-left::after {
   content: '';
   position: absolute;

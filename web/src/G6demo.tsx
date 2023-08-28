@@ -1,16 +1,17 @@
-import React, { useEffect, useRef, useState, Component } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import JSON_data from '../public/data1.json';
-import G6, { Graph, Layout } from '@antv/g6';
+import G6, { Graph, IEdge, IG6GraphEvent, Item, StateStyles, Layout } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
 import { Link } from 'react-router-dom';
 // 引入样式
 import './G6demo.scss'
-// import { log } from 'console';
+import { GraphData, NodeConfig } from "@antv/g6-core/lib/types";
+import { INode } from "@antv/g6-core/lib/interface/item";
 interface JsonData {
     [key: string]: {
-        name: any;
+        name: string;
         dependencies: string[];
         // 其他属性
         version: string,
@@ -28,12 +29,34 @@ interface JsonData {
  * 
  */
 // let chooseColor: any = 'blue';
-const bgC: any = {
+
+type BackgroundColor = Record<string, string>;
+interface NodeColor {
+    defaultNodeFill: string;
+    defaultLabel: string;
+    defaultEdge: string;
+    defaultOpacity: number;
+}
+interface StateColor {
+    edgeHoverColor: string;
+    edgeClickFill: string;
+    edgeClickOpacity: number;
+    nodeFill: string;
+    nodeSelectedStroke: string;
+    nodeHighlightFill: string;
+    nodeHighlightstroke: string;
+    nodeHighlightOpacity: number;
+    nodeHoverStroke: string;
+    textWeight: number;
+}
+
+const bgC: BackgroundColor = {
     blue: '#eff8fa',
     dark: '#303030',
     gray: '#fff'
 }
-const defaultNodeColor: any = {
+
+const defaultNodeColor: Record<string, NodeColor> = {
     blue: {
         defaultNodeFill: '#84a1c8',
         defaultLabel: 'white',
@@ -53,7 +76,8 @@ const defaultNodeColor: any = {
         defaultOpacity: 1
     }
 }
-const StateColor: any = {
+
+const StateColor: Record<string, StateColor> = {
     blue: {
         edgeHoverColor: "#8898ae",
         edgeClickFill: "#36445c",
@@ -92,12 +116,10 @@ const StateColor: any = {
     }
 }
 
-
 // 数据
-const processJsonData = (jsonData: JsonData) => {
-    let tmp = new Map();
-    let nodes: any = [];
-    nodes.push({
+const processJsonData = (jsonData: JsonData): GraphData => {
+    const tmp = new Map();
+    const nodes: NodeConfig[] = [{
         id: jsonData['treeRoot'].name,
         label: jsonData['treeRoot'].name,
         version: jsonData['treeRoot'].version,
@@ -107,10 +129,10 @@ const processJsonData = (jsonData: JsonData) => {
             height: 60,
             fill: 'orange'
         }
-    })
-    let findNodes = (name: any) => {
+    }];
+    const findNodes = (name: string) => {
         if (jsonData[name]) {
-            jsonData[name].dependencies.map((item: any) => {
+            jsonData[name].dependencies.map((item: string) => {
                 // 如果不存在才加进去
                 if (!tmp.has(item)) {
                     nodes.push({
@@ -129,11 +151,11 @@ const processJsonData = (jsonData: JsonData) => {
     findNodes("treeRoot");
     console.log(nodes);
 
-    let edges: { source: any; target: string; }[] = [];
+    const edges: { source: string; target: string; }[] = [];
     const getEdges = () => {
-        for (let item of Object.values(jsonData)) {
+        for (const item of Object.values(jsonData)) {
             // console.log(item);
-            for (let v of item.dependencies) {
+            for (const v of item.dependencies) {
                 edges.push({
                     source: item.name,
                     target: v,
@@ -143,7 +165,7 @@ const processJsonData = (jsonData: JsonData) => {
     };
     getEdges();
     console.log(edges);
-    const data = {
+    const data: GraphData = {
         nodes,
         edges,
     };
@@ -174,8 +196,9 @@ const tooltip = new G6.Tooltip({
     itemTypes: ['node', 'edge'],
     // custom the tooltip's content
     // 自定义 tooltip 内容
-    getContent: (e: any) => {
-        const outDiv = document.createElement('div');
+    getContent: (e: IG6GraphEvent | undefined) => {
+        if (!e || !e.item) return '';
+        const outDiv: HTMLDivElement = document.createElement('div');
         outDiv.style.width = 'fit-content';
         outDiv.style.height = 'fit-content';
         const model = e.item?.getModel();
@@ -186,8 +209,8 @@ const tooltip = new G6.Tooltip({
                 描述：${model.description ? model.description : '暂无信息'}
             `;
         } else {
-            const source = e.item.getSource();
-            const target = e.item.getTarget();
+            const source = (e.item as IEdge).getSource();
+            const target = (e.item as IEdge).getTarget();
             outDiv.innerHTML = `来源：${source.getModel().id}<br/>去向：${target.getModel().id}`;
         }
         return outDiv;
@@ -201,9 +224,13 @@ const minimap = new G6.Minimap({
     type: 'keyShape',
 });
 // 选择布局 力force 流程图dagre 辐射radial
-// const layoutChoose: any = 'force';
-const layoutInfo: any = {
-    'force': {
+// const layoutChoose: string = 'force';
+
+interface ILayoutInfo {
+    [key: string]: unknown
+}
+const layoutInfo: ILayoutInfo = {
+    force: {
         // type: 'force',//radial dagre
         preventOverlap: true,// 防止节点重叠
         linkDistance: 100, // 指定边距离为100
@@ -213,7 +240,7 @@ const layoutInfo: any = {
             color: 'white'
         }
     },
-    'radial': {
+    radial: {
         linkDistance: 600,
         preventOverlap: true,// 防止节点重叠
         unitRadius: 200,
@@ -221,7 +248,7 @@ const layoutInfo: any = {
         nodeSpacing: 90,
         // strictRadial: false
     },
-    'dagre': {
+    dagre: {
         rankdir: 'LR',
         nodesep: 1,
     }
@@ -247,11 +274,14 @@ const Search = ({ graph }: SearchProps) => {
             return;
         }
 
-        const data = processJsonData(JSON_data);
-        const targetNodes = data.nodes.filter((node: any) =>
-            node.label.includes(inputText)
+        const data: GraphData = processJsonData(JSON_data);
+        if (!data.nodes) {
+            return;
+        }
+        const targetNodes: NodeConfig[] = data.nodes.filter((node: NodeConfig) =>
+            node.label && (node.label as string).includes(inputText)
         );
-        const results = targetNodes.map((node: any) => node.id);
+        const results = targetNodes.map((node: NodeConfig) => node.id);
         setSearchResults(results);
         setSelectedIndex(-1);
     };
@@ -281,7 +311,7 @@ const Search = ({ graph }: SearchProps) => {
         if (selectedIndex !== -1) {
             const selectedNodeId = searchResults[selectedIndex];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'click', true);
+            graph.setItemState(node, 'target', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
@@ -300,7 +330,8 @@ const Search = ({ graph }: SearchProps) => {
         } else if (searchResults.length === 1) {
             const selectedNodeId = searchResults[0];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'highlight', true);
+            graph.setItemState(node, 'target', true);
+
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
                 graph.clearItemStates(lastNode);
@@ -344,7 +375,7 @@ const Search = ({ graph }: SearchProps) => {
                         type='text'
                         value={searchText}
                         onChange={handleInputChange}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={handleKeyPress}
                     />
                     <div className='font' onClick={handleSearch}>
                         <i className='iconfont'>&#xe61a;</i>
@@ -378,9 +409,20 @@ interface SidebarProps {
 }
 //侧边栏部分
 const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
+    const [selectedItem, setSelectedItem] = useState('');
+    const [tooltipText, setTooltipText] = useState('');
+
+
+    const handleItemClick = (item: string) => {
+        setSelectedItem(item);
+        if (item === 'Item 1') {
+            onColorChange('dark'); // 在颜色选择变化时调用父组件的回调函数
+        }
+    };
+
     const [activeItemId, setActiveItemId] = useState(null);
     const containerRef = useRef(null);
-    // list
+
     const listItems = [
         {
             id: 1,
@@ -406,30 +448,28 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
             subcontents: [
                 {
                     id: 4,
-                    text: 'Force',  //Force力导向图布局
+                    text: 'Force',//Force力导向图布局
                 },
                 {
                     id: 5,
-                    text: 'Radial',  // 辐射布局
+                    text: 'Radial',// 辐射布局
                 }, {
                     id: 6,
-                    text: 'Dagre',  // 流程图布局
+                    text: 'Dagre',// 流程图布局
                 }
             ]
         },
     ];
-
     const activeItem = listItems.find((item) => item.id === activeItemId);
 
     const handleClick = (itemId: any) => {
-        console.log(itemId);
         if (itemId === activeItemId) {
             setActiveItemId(null);
         } else {
             setActiveItemId(itemId);
             //切换
             // if (itemId === 1) {
-
+            //     onColorChange('gray'); // 在颜色选择变化时调用父组件的回调函数
             // }
         }
     };
@@ -449,6 +489,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
         }
 
     }
+    const handleMouseEnter = (text: string) => {
+        setTooltipText(text);
+    };
+
+    const handleMouseLeave = () => {
+        setTooltipText('');
+    };
+
+
     //点击消失
     useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
@@ -463,7 +512,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
             document.removeEventListener('mouseleave', handleOutsideClick);
         };
     }, []);
-
     return (
         <div className='sidebar'>
             <ul>
@@ -485,7 +533,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
                                 <div
                                     key={subcontent.id}
                                     className='rect-tip'
-                                    // 各个内容的id
+                                    // 各个内容的id 
                                     onClick={() => { console.log(`Clicked ${subcontent.id}`); chooseFun(subcontent.id) }}
                                 >
                                     <p>{subcontent.text}</p>
@@ -498,10 +546,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
         </div>
     );
 };
+
 // 总的父组件
-const demoGraph = () => {
+const DemoGraph: React.FC<SidebarProps> = () => {
+
     const containerRef = React.useRef<HTMLDivElement>(null);
-    let graphRef = React.useRef<Graph | undefined>(undefined);
+    const graphRef = React.useRef<Graph | undefined>(undefined);
     const [chooseColor, setChooseColor] = useState('blue');
     const [chooseLayout, setChooseLayout] = useState('force');
     const handleColorChange = (color: React.SetStateAction<string>) => {
@@ -511,29 +561,29 @@ const demoGraph = () => {
         setChooseLayout(layout);
     }
     console.log('chooseColor', chooseColor);
-    let abc = {
-        hover: {
-            stroke: StateColor[chooseColor].edgeHoverColor,
-            lineWidth: 3,
-            shadowColor: "#dce3e4",
-            shadowBlur: 50,
-            color: StateColor[chooseColor].edgeHoverColor,
-            opacity: .7,
-        },
-        clicked: {
-            lineWidth: 3,
-            // color: StateColor[chooseColor].edgeClickFill,
-            stroke: StateColor[chooseColor].edgeClickFill,
-            opacity: StateColor[chooseColor].edgeClickOpacity,
-        },
-    }
+
     useEffect(() => {
+        const abc: StateStyles = {
+            hover: {
+                stroke: StateColor[chooseColor].edgeHoverColor,
+                lineWidth: 3,
+                shadowColor: "#dce3e4",
+                shadowBlur: 50,
+                color: StateColor[chooseColor].edgeHoverColor,
+                opacity: .7,
+            },
+            clicked: {
+                lineWidth: 3,
+                // color: StateColor[chooseColor].edgeClickFill,
+                stroke: StateColor[chooseColor].edgeClickFill,
+                opacity: StateColor[chooseColor].edgeClickOpacity,
+            },
+        }
+
         console.log('chooseColor', chooseColor);
-        let edgeStateStyles: any;
-        edgeStateStyles = Object.assign({}, abc);
-        let nodeStateStyles: any;
+        const edgeStateStyles: StateStyles = Object.assign({}, abc);
         // 点击当前节点是select 相关节点是highlight 鼠标悬浮是hover
-        nodeStateStyles = {
+        const nodeStateStyles: StateStyles = {
             selected: {
                 fill: StateColor[chooseColor].nodeFill,
                 stroke: StateColor[chooseColor].nodeSelectedStroke,
@@ -543,28 +593,28 @@ const demoGraph = () => {
                 "text-shape": {
                     fontWeight: StateColor[chooseColor].textWeight
                 },
-                "shadowColor": "#aeaeae",
-                "shadowBlur": 10,
+                shadowColor: "#aeaeae",
+                shadowBlur: 10,
                 opacity: StateColor[chooseColor].edgeClickOpacity,
             },
             // 高亮
             highlight: {
                 fill: StateColor[chooseColor].nodeHighlightFill,
                 // "stroke": "#4572d9",
-                "lineWidth": 2,
+                lineWidth: 2,
                 "text-shape": {
-                    "fontWeight": StateColor[chooseColor].textWeight
+                    fontWeight: StateColor[chooseColor].textWeight
                 },
-                "stroke": StateColor[chooseColor].nodeHighlightstroke,
+                stroke: StateColor[chooseColor].nodeHighlightstroke,
                 opacity: StateColor[chooseColor].edgeClickOpacity
             },
             hover: {
                 // stroke: "yellow",
                 // "fill": "rgb(247, 250, 255)",
-                "stroke": StateColor[chooseColor].nodeHoverStroke,
+                stroke: StateColor[chooseColor].nodeHoverStroke,
                 // "lineWidth": 2,
-                "shadowColor": "#d7b140",
-                "shadowBlur": 25
+                shadowColor: "#d7b140",
+                shadowBlur: 25
             },
             target: {
                 fill: "rgb(255, 255, 255)",
@@ -577,21 +627,24 @@ const demoGraph = () => {
             }
         }
         console.log('useEffect', chooseColor);
-        console.log(containerRef);
 
         // let selectNode: any = { id: "treeRoot", label: "treeRoot" };
+        // if (graphRef.current || !containerRef.current) return;
         if (graphRef.current) {
-            graphRef.current?.destroy();
-            // return;
+            graphRef.current?.destroy()
         }
+
         if (!containerRef.current) {
             return;
         }
+
         const graph = new G6.Graph({
-            container: containerRef.current as HTMLElement,
+            container: containerRef.current,
             layout: {
+                // type: layoutChoose,
+                // ...(layoutInfo[layoutChoose] as object),
                 type: chooseLayout,
-                ...layoutInfo[chooseLayout]
+                ...(layoutInfo[chooseLayout] as object)
             },
             width: containerRef.current.clientWidth - 10,
             height: containerRef.current.clientHeight - 10,
@@ -649,7 +702,6 @@ const demoGraph = () => {
             edgeStateStyles: edgeStateStyles,
             nodeStateStyles: nodeStateStyles,
         });
-        console.log(graph);
         console.log(G6);
 
         // 将 graph 传递给 Search 组件作为 prop
@@ -662,7 +714,7 @@ const demoGraph = () => {
         const graphJsonData = processJsonData(JSON_data);
         console.log(graphJsonData);
         // 绑定数据
-        graph.data(graphJsonData);
+        graph.data(graphJsonData as GraphData);
         // 渲染图
         graph.render();
         graph.on("node:dragstart", function (e) {
@@ -681,7 +733,8 @@ const demoGraph = () => {
         });
         // 鼠标悬浮节点
         graph.on('node:mouseenter', (ev) => {
-            const nodeItem: any = ev.item;
+            if (!ev.item) return;
+            const nodeItem: Item = ev.item;
             graph.setItemState(nodeItem, 'hover', true); // 设置当前
         });
         // 鼠标离开悬浮节点
@@ -690,32 +743,34 @@ const demoGraph = () => {
             const node = ev.item;
             // console.log(node);
             const edges = node?._cfg?.edges;
-            edges.forEach((edge: any) => graph.setItemState(edge, 'running', false));
+            edges.forEach((edge: IEdge) => graph.setItemState(edge, 'running', false));
             const nodes = graph.findAllByState('node', 'hover');
-            nodes.forEach((node: any) => graph.setItemState(node, 'hover', false));
+            nodes.forEach((node: Item) => graph.setItemState(node, 'hover', false));
         });
-        graph.on('edge:mouseleave', (ev) => {
+        graph.on('edge:mouseleave', () => {
             const edges = graph.findAllByState('edge', 'hover');
-            edges.forEach((edge: any) => graph.setItemState(edge, 'hover', false));
+            edges.forEach((edge: Item) => graph.setItemState(edge, 'hover', false));
         })
 
         // 鼠标悬浮线条
         graph.on('edge:mouseenter', (ev) => {
-            const edgeItem: any = ev.item;
+            if (!ev.item) return;
+            const edgeItem: Item = ev.item;
             graph.setItemState(edgeItem, 'hover', true); // 设置当前
         })
         // 单击节点
         graph.on('node:click', (ev) => {
             // 先将所有当前是 click 状态的节点置为非 click 状态
             clear();
-            const nodeItem: any = ev.item; // 获取被点击的节点元素对象
+            if (!ev.item) return;
+            const nodeItem: INode = ev.item as INode; // 获取被点击的节点元素对象
             graph.setItemState(nodeItem, 'selected', true); // 设置当前
             const edges = nodeItem.getEdges();
-            edges.forEach((edge: any) => {
+            edges.forEach((edge: IEdge) => {
                 graph.setItemState(edge, 'clicked', true);
             })
             const Nodes = nodeItem.getNeighbors();
-            Nodes.forEach((node: any) => {
+            Nodes.forEach((node: INode) => {
                 graph.setItemState(node, 'highlight', true);
             })
         })
@@ -726,22 +781,22 @@ const demoGraph = () => {
                 graph.setItemState(cn, 'selected', false);
             });
             const clickNodes2 = graph.findAllByState('node', 'highlight');
-            clickNodes2.forEach((node: any) => {
+            clickNodes2.forEach((node: Item) => {
                 graph.setItemState(node, 'highlight', false);
             })
             const clickEdges = graph.findAllByState('edge', 'clicked');
-            clickEdges.forEach((cn) => {
+            clickEdges.forEach((cn: Item) => {
                 graph.setItemState(cn, 'clicked', false);
             });
         }
         // 点击画布
-        graph.on('canvas:click', (ev) => {
+        graph.on('canvas:click', () => {
             clear();
         })
         // 点击边
         graph.on('edge:click', (ev) => {
             clear();
-            const clickEdge: any = ev.item;
+            const clickEdge: IEdge = ev.item as IEdge;
             graph.setItemState(clickEdge, 'clicked', true);
             graph.setItemState(clickEdge.getSource(), 'highlight', true);
             graph.setItemState(clickEdge.getTarget(), 'highlight', true);
@@ -756,7 +811,10 @@ const demoGraph = () => {
                 //   graph.changeSize(container.scrollWidth, container.scrollHeight);
             };
 
-        function refreshDragedNodePosition(e: any) {
+        function refreshDragedNodePosition(e: IG6GraphEvent) {
+            if (!e.item) {
+                return
+            }
             const model = e.item.get("model");
             model.fx = e.x;
             model.fy = e.y;
@@ -771,8 +829,7 @@ const demoGraph = () => {
         <div id="search-container"></div>
         <Sidebar onColorChange={handleColorChange} onLayoutChange={handleLayoutChange}></Sidebar>
         <div ref={containerRef} style={{ width: '100%', height: '100vh', backgroundColor: bgC[chooseColor] }}></div>
-
     </>
     );
 }
-export default demoGraph;
+export default DemoGraph;
