@@ -383,7 +383,7 @@ const Sidebar: React.FC<SidebarProps> = ({ chooseColor, onColorChange }) => {
     const handleItemClick = (item: string) => {
         setSelectedItem(item);
         if (item === 'Item 1') {
-            onColorChange('dark'); // 在颜色选择变化时调用父组件的回调函数
+            onColorChange('gray'); // 在颜色选择变化时调用父组件的回调函数
         }
     };
 
