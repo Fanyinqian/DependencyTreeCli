@@ -377,80 +377,107 @@ interface SidebarProps {
 }
 //侧边栏部分
 const Sidebar: React.FC<SidebarProps> = ({ chooseColor, onColorChange }) => {
-    const [selectedItem, setSelectedItem] = useState('');
-    const [tooltipText, setTooltipText] = useState('');
-
-    const handleItemClick = (item: string) => {
-        setSelectedItem(item);
-        if (item === 'Item 1') {
+    const [activeItemId, setActiveItemId] = useState(null);
+    const containerRef = useRef(null);
+    
+    const listItems = [
+      {
+        id: 1,
+        title: <span><i className='iconfont'>&#xe6ab;</i><br/>样式</span>,
+        subcontents: [
+          {
+            id: 1,
+            text: 'Subcontent 1',
+          },
+          {
+            id: 2,
+            text: 'Subcontent 2',
+          },
+          {
+            id: 3,
+            text: 'Subcontent 3',
+          },
+        ]
+      },
+      {
+        id: 2,
+        title: <span><i className='iconfont'>&#xe6c1;</i><br/>布局</span>,
+        subcontents: [
+          {
+            id: 3,
+            text: 'Subcontent 3',
+          },
+          {
+            id: 4,
+            text: 'Subcontent 4',
+          }
+        ]
+      },  
+    ];
+  
+    const activeItem = listItems.find((item) => item.id === activeItemId);
+  
+    const handleClick = (itemId: any) => {
+      if (itemId === activeItemId) {
+        setActiveItemId(null);
+      } else {
+        setActiveItemId(itemId);
+        //切换
+        if (itemId === 1) {
             onColorChange('gray'); // 在颜色选择变化时调用父组件的回调函数
         }
+      }
     };
-
-    const handleMouseEnter = (text: string) => {
-        setTooltipText(text);
-    };
-
-    const handleMouseLeave = () => {
-        setTooltipText('');
-    };
-
+  
+    //点击消失
+    useEffect(() => {
+      const handleOutsideClick = (event: MouseEvent) => {
+        if (containerRef.current && !(containerRef.current as HTMLDivElement).contains(event.target as Node)) {
+          setActiveItemId(null);
+        }
+      };
+    
+      document.addEventListener('mousedown', handleOutsideClick);
+    
+      return () => {
+        document.removeEventListener('mousedown', handleOutsideClick);
+      };
+    }, []);
+  
     return (
-        <div className="sidebar">
-            {/* {tooltipText && <div className="tooltip">{tooltipText}</div>} */}
-            <ul>
-                <li
-                    onClick={() => handleItemClick('Item 1')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 1')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 1' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 1' && (
-                        <div className="tooltip-left">切换样式</div>
-                    )}
-                    <i className='iconfont'>&#xe6ab;</i>
-                </li>
-                <Link to={'/dev'}>
-
-                    <li
-                        onClick={() => handleItemClick('Item 2')}
-                        onMouseEnter={() => handleMouseEnter('Tooltip for Item 2')}
-                        onMouseLeave={handleMouseLeave}
-                        className={selectedItem === 'Item 2' ? 'active' : ''}
-                    >
-                        {tooltipText === 'Tooltip for Item 2' && (
-                            <div className="tooltip-left">切换dev</div>
-                        )}
-                        <i className='iconfont'>&#xe6c1;</i>
-                    </li>
-                </Link>
-
-                <li
-                    onClick={() => handleItemClick('Item 3')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 3')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 3' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 3' && (
-                        <div className="tooltip-left">全屏显示</div>
-                    )}
-                    <i className='iconfont'>&#xec13;</i>
-                </li>
-                <li
-                    onClick={() => handleItemClick('Item 4')}
-                    onMouseEnter={() => handleMouseEnter('Tooltip for Item 4')}
-                    onMouseLeave={handleMouseLeave}
-                    className={selectedItem === 'Item 4' ? 'active' : ''}
-                >
-                    {tooltipText === 'Tooltip for Item 4' && (
-                        <div className="tooltip-left">鸟瞰图</div>
-                    )}
-                    <i className='iconfont'>&#xe71a;</i>
-                </li>
-            </ul>
+      <div className='sidebar'>
+        <ul>
+          {listItems.map((item) => (
+            <li
+              key={item.id}
+              onClick={() => handleClick(item.id)}
+              className={item.id === activeItemId ? 'active' : ''}
+            >
+              {item.title}
+            </li>
+          ))}
+        </ul>
+        <div className={`container ${activeItem ? 'active' : ''}`} ref={containerRef}>
+          {activeItem && (
+            <div className='tooltip-container'>
+              <div className='tooltip-left'>
+                {activeItem.subcontents.map((subcontent) => (
+                  <div
+                    key={subcontent.id}
+                    className='rect-tip'
+                    // 各个内容的id 
+                    onClick={() => console.log(`Clicked ${subcontent.id}`)}
+                  >
+                    <p>{subcontent.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+      </div>
     );
-};
+  };
 // 总的父组件
 const demoGraph = () => {
     const containerRef = React.useRef<HTMLDivElement>(null);
