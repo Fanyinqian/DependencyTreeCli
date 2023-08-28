@@ -380,7 +380,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
     const [activeItemId, setActiveItemId] = useState(null);
     const containerRef = useRef(null);
-
+    // list
     const listItems = [
         {
             id: 1,
@@ -406,14 +406,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onColorChange, onLayoutChange }) => {
             subcontents: [
                 {
                     id: 4,
-                    text: 'Force',//Force力导向图布局
+                    text: 'Force',  //Force力导向图布局
                 },
                 {
                     id: 5,
-                    text: 'Radial',// 辐射布局
+                    text: 'Radial',  // 辐射布局
                 }, {
                     id: 6,
-                    text: 'Dagre',// 流程图布局
+                    text: 'Dagre',  // 流程图布局
                 }
             ]
         },
