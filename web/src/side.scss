@@ -1,0 +1,61 @@
+.sidebar{
+  position: absolute;
+  right: 0;
+  top: 30%;
+  
+ ul{
+  position: relative;
+  list-style: none;
+  width: 90px;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(35,37,42,.14);
+  border-radius: 4px;
+}
+.active i{
+  color: #9a9898;
+}
+
+ li{
+  padding: 20px 10px;
+  cursor: pointer;
+  text-align: center;
+}
+  i{
+  font-size: 40px;
+}
+
+.tooltip-left{
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  transform: translate(-100%, -50%);
+  padding: 15px;
+  border-radius: 4px;
+  text-align: right;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(35,37,42,.14);
+}
+
+.rect-tip{
+  padding: 10px 40px;
+  border-radius: 6px;
+  background-color: #e8eaee;
+  margin: 10px 0;
+  cursor: pointer;
+}
+.rect-tip:hover{
+  background-color:#9a9898;
+}
+}
+
+
+.tooltip-left::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border: solid transparent;
+  border-width: 10px;
+  border-left-color: #9a9898; /* 右箭头颜色 */
+}
