@@ -98,7 +98,7 @@ const dependencyTreeParser = async (depth: number) => {
   saveDependencyTreeJson("/dist/test", true);
   const staticPath = path.join(__dirname.replace(/\\src|\\lib/g, ""), "dist");
   app.use(express.static(staticPath)).listen(8243, () => {
-    exec("start http://127.0.0.1:8243/index.html");
+    exec("start http://127.0.0.1:8243");
     // console.log("依赖关系图：http://127.0.0.1:8080/index.html");
   });
 };

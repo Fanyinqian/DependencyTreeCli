@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Component } from 'react';
 import ReactDOM from 'react-dom';
-import JSON_data from '../public/test.json';
+// import JSON_data from '../public/test.json';
 import G6, { Graph, IEdge, IG6GraphEvent, Item, StateStyles } from '@antv/g6';
 import './Search/index.scss'
 import './side.scss'
@@ -9,6 +9,8 @@ import './side.scss'
 import './G6demo.scss'
 import { GraphData, NodeConfig } from "@antv/g6-core/lib/types";
 import { INode } from "@antv/g6-core/lib/interface/item";
+// import { log } from 'util';
+
 interface JsonData {
     [key: string]: {
         name: string;
@@ -18,6 +20,7 @@ interface JsonData {
         description: string
     };
 }
+let jsonData: JsonData;
 /**
  * 点击节点相关节点高亮 -- zh
  * 点击边--两边节点高亮 -- zh
@@ -117,8 +120,18 @@ const StateColor: Record<string, StateColor> = {
 }
 
 // 数据
-const processJsonData = (jsonData: JsonData): GraphData => {
+const processJsonData = async (): Promise<GraphData> => {
     const tmp = new Map();
+    const response = await fetch('test.json', {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+    })
+    jsonData = await response.json();
+    console.log(jsonData);
+
     const nodes: NodeConfig[] = [{
         id: jsonData['treeRoot'].name,
         label: jsonData['treeRoot'].name,
@@ -277,7 +290,7 @@ const Search = ({ graph }: SearchProps) => {
   const handleDeleteIconClick = () => {
     setSearchVisible(false);
   };
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputText = e.target.value;
         setSearchText(inputText);
 
@@ -287,7 +300,9 @@ const Search = ({ graph }: SearchProps) => {
             return;
         }
 
-        const data: GraphData = processJsonData(JSON_data);
+        const data: GraphData = await processJsonData();
+        console.log(data);
+
         if (!data.nodes) {
             return;
         }
@@ -592,6 +607,7 @@ const DemoGraph: React.FC<SidebarProps> = () => {
     console.log('chooseColor', chooseColor);
 
     useEffect(() => {
+
         const abc: StateStyles = {
             hover: {
                 stroke: StateColor[chooseColor].edgeHoverColor,
@@ -739,118 +755,125 @@ const DemoGraph: React.FC<SidebarProps> = () => {
 
         // graph.registerNode()
         // 结构数据
-        console.log(JSON_data);
-        const graphJsonData = processJsonData(JSON_data);
-        console.log(graphJsonData);
-        // 绑定数据
-        graph.data(graphJsonData as GraphData);
-        // 渲染图
-        graph.render();
-        graph.on("node:dragstart", function (e) {
-            graph.layout();
-            refreshDragedNodePosition(e);
-        });
-        graph.on("node:drag", function (e) {
-            refreshDragedNodePosition(e);
-        });
-        // 节点移动
-        graph.on("node:dragend", function (e) {
-            // e.item.get("model").fx = null;
-            // e.item.get("model").fy = null;
-            console.log(e.item);
+        let graphJsonData: any;
+        (async () => {
+            graphJsonData = await processJsonData();
+            console.log(graphJsonData);
+            graph.data(graphJsonData);
+            console.log(graphJsonData);
 
-        });
-        // 鼠标悬浮节点
-        graph.on('node:mouseenter', (ev) => {
-            if (!ev.item) return;
-            const nodeItem: Item = ev.item;
-            graph.setItemState(nodeItem, 'hover', true); // 设置当前
-        });
-        // 鼠标离开悬浮节点
-        graph.on('node:mouseleave', (ev) => {
-            // console.log(ev);
-            const node = ev.item;
-            // console.log(node);
-            const edges = node?._cfg?.edges;
-            edges.forEach((edge: IEdge) => graph.setItemState(edge, 'running', false));
-            const nodes = graph.findAllByState('node', 'hover');
-            nodes.forEach((node: Item) => graph.setItemState(node, 'hover', false));
-        });
-        graph.on('edge:mouseleave', () => {
-            const edges = graph.findAllByState('edge', 'hover');
-            edges.forEach((edge: Item) => graph.setItemState(edge, 'hover', false));
-        })
-
-        // 鼠标悬浮线条
-        graph.on('edge:mouseenter', (ev) => {
-            if (!ev.item) return;
-            const edgeItem: Item = ev.item;
-            graph.setItemState(edgeItem, 'hover', true); // 设置当前
-        })
-        // 单击节点
-        graph.on('node:click', (ev) => {
-            // 先将所有当前是 click 状态的节点置为非 click 状态
-            clear();
-            if (!ev.item) return;
-            const nodeItem: INode = ev.item as INode; // 获取被点击的节点元素对象
-            graph.setItemState(nodeItem, 'selected', true); // 设置当前
-            const edges = nodeItem.getEdges();
-            edges.forEach((edge: IEdge) => {
-                graph.setItemState(edge, 'clicked', true);
-            })
-            const Nodes = nodeItem.getNeighbors();
-            Nodes.forEach((node: INode) => {
-                graph.setItemState(node, 'highlight', true);
-            })
-        })
-        // 清空所有的样式
-        const clear = function () {
-            const clickNodes = graph.findAllByState('node', 'selected');
-            clickNodes.forEach((cn) => {
-                graph.setItemState(cn, 'selected', false);
+            // 绑定数据
+            // 渲染图
+            graph.render();
+            graph.on("node:dragstart", function (e) {
+                graph.layout();
+                refreshDragedNodePosition(e);
             });
-            const clickNodes2 = graph.findAllByState('node', 'highlight');
-            clickNodes2.forEach((node: Item) => {
-                graph.setItemState(node, 'highlight', false);
-            })
-            const clickEdges = graph.findAllByState('edge', 'clicked');
-            clickEdges.forEach((cn: Item) => {
-                graph.setItemState(cn, 'clicked', false);
+            graph.on("node:drag", function (e) {
+                refreshDragedNodePosition(e);
             });
-        }
-        // 点击画布
-        graph.on('canvas:click', () => {
-            clear();
-        })
-        // 点击边
-        graph.on('edge:click', (ev) => {
-            clear();
-            const clickEdge: IEdge = ev.item as IEdge;
-            graph.setItemState(clickEdge, 'clicked', true);
-            graph.setItemState(clickEdge.getSource(), 'highlight', true);
-            graph.setItemState(clickEdge.getTarget(), 'highlight', true);
-        })
-        console.log(containerRef);
+            // 节点移动
+            graph.on("node:dragend", function (e) {
+                // e.item.get("model").fx = null;
+                // e.item.get("model").fy = null;
+                console.log(e.item);
 
-        if (typeof window !== "undefined")
-            window.onresize = () => {
-                if (!graph || graph.get("destroyed")) return;
-                if (!containerRef || !containerRef.current?.scrollWidth || !containerRef.current?.scrollHeight)
-                    return;
-                //   graph.changeSize(container.scrollWidth, container.scrollHeight);
-            };
+            });
+            // 鼠标悬浮节点
+            graph.on('node:mouseenter', (ev) => {
+                if (!ev.item) return;
+                const nodeItem: Item = ev.item;
+                graph.setItemState(nodeItem, 'hover', true); // 设置当前
+            });
+            // 鼠标离开悬浮节点
+            graph.on('node:mouseleave', (ev) => {
+                // console.log(ev);
+                const node = ev.item;
+                // console.log(node);
+                const edges = node?._cfg?.edges;
+                edges.forEach((edge: IEdge) => graph.setItemState(edge, 'running', false));
+                const nodes = graph.findAllByState('node', 'hover');
+                nodes.forEach((node: Item) => graph.setItemState(node, 'hover', false));
+            });
+            graph.on('edge:mouseleave', () => {
+                const edges = graph.findAllByState('edge', 'hover');
+                edges.forEach((edge: Item) => graph.setItemState(edge, 'hover', false));
+            })
 
-        function refreshDragedNodePosition(e: IG6GraphEvent) {
-            if (!e.item) {
-                return
+            // 鼠标悬浮线条
+            graph.on('edge:mouseenter', (ev) => {
+                if (!ev.item) return;
+                const edgeItem: Item = ev.item;
+                graph.setItemState(edgeItem, 'hover', true); // 设置当前
+            })
+            // 单击节点
+            graph.on('node:click', (ev) => {
+                // 先将所有当前是 click 状态的节点置为非 click 状态
+                clear();
+                if (!ev.item) return;
+                const nodeItem: INode = ev.item as INode; // 获取被点击的节点元素对象
+                graph.setItemState(nodeItem, 'selected', true); // 设置当前
+                const edges = nodeItem.getEdges();
+                edges.forEach((edge: IEdge) => {
+                    graph.setItemState(edge, 'clicked', true);
+                })
+                const Nodes = nodeItem.getNeighbors();
+                Nodes.forEach((node: INode) => {
+                    graph.setItemState(node, 'highlight', true);
+                })
+            })
+            // 清空所有的样式
+            const clear = function () {
+                const clickNodes = graph.findAllByState('node', 'selected');
+                clickNodes.forEach((cn) => {
+                    graph.setItemState(cn, 'selected', false);
+                });
+                const clickNodes2 = graph.findAllByState('node', 'highlight');
+                clickNodes2.forEach((node: Item) => {
+                    graph.setItemState(node, 'highlight', false);
+                })
+                const clickEdges = graph.findAllByState('edge', 'clicked');
+                clickEdges.forEach((cn: Item) => {
+                    graph.setItemState(cn, 'clicked', false);
+                });
             }
-            const model = e.item.get("model");
-            model.fx = e.x;
-            model.fy = e.y;
-        }
-        console.log(containerRef);
-        console.log(graphRef);
-        graphRef.current = graph;
+            // 点击画布
+            graph.on('canvas:click', () => {
+                clear();
+            })
+            // 点击边
+            graph.on('edge:click', (ev) => {
+                clear();
+                const clickEdge: IEdge = ev.item as IEdge;
+                graph.setItemState(clickEdge, 'clicked', true);
+                graph.setItemState(clickEdge.getSource(), 'highlight', true);
+                graph.setItemState(clickEdge.getTarget(), 'highlight', true);
+            })
+            console.log(containerRef);
+
+            if (typeof window !== "undefined")
+                window.onresize = () => {
+                    if (!graph || graph.get("destroyed")) return;
+                    if (!containerRef || !containerRef.current?.scrollWidth || !containerRef.current?.scrollHeight)
+                        return;
+                    //   graph.changeSize(container.scrollWidth, container.scrollHeight);
+                };
+
+            function refreshDragedNodePosition(e: IG6GraphEvent) {
+                if (!e.item) {
+                    return
+                }
+                const model = e.item.get("model");
+                model.fx = e.x;
+                model.fy = e.y;
+            }
+            console.log(containerRef);
+            console.log(graphRef);
+            graphRef.current = graph;
+
+        })()
+
+
 
     }, [chooseColor, chooseLayout])
     return (<>
