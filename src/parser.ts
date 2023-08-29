@@ -5,13 +5,10 @@ const path = require("path");
 const { pipeline } = require("stream");
 const app = express();
 const PrimaryKey: string = "treeRoot"; //依赖树映 射表的主键
-// 创建一个新的缓存实例
 const dependencyTreeMap: Map<string, dependencyTree> = new Map<
   string,
   dependencyTree
 >(); //依赖树的映射表
-
-const cacheTime: number = 3600; //缓存时间
 
 //依赖树
 interface dependencyTree {
@@ -36,10 +33,13 @@ const readPackageJson = (filename: string): Promise<packageObj> => {
   let path = "./package.json"; //文件路径
   if (filename != PrimaryKey) path = `./node_modules/${filename}/package.json`;
   return new Promise((resolve, reject) => {
-    fs.readFile(path, "utf-8", (err: Error, dataStr: string) => {
-      if (err) reject(err);
-      resolve(JSON.parse(dataStr || "{}"));
-    });
+    //如果文件夹存在就返回文件数据，否则返回空对象
+    fs.existsSync(path)
+      ? fs.readFile(path, "utf-8", (err: Error, dataStr: string) => {
+          if (err) reject(err);
+          resolve(JSON.parse(dataStr || "{}"));
+        })
+      : resolve({});
   });
 };
 
@@ -59,6 +59,8 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
   }
   //获取依赖包文件的数据
   let packageData: packageObj = (await readPackageJson(packName)) as packageObj;
+  //如果返回的对象为空则结束
+  if (Object.keys(packageData).length == 0) return;
   // if (packName != PrimaryKey) console.log(`包${packName}解析成功!`);
   //获取依赖包数据的dependencies数组
   let dependencies: string[] = Array.from(
@@ -131,9 +133,9 @@ const saveDependencyTreeJson = (
 ): string | Promise<string> => {
   // 处理获取到的目标路径
   if (!targetPath.endsWith(".json")) targetPath += ".json";
-  targetPath = `${__dirname.replace(/\\src|\\lib/g, "")}${targetPath}`;
 
   if (saveCurrent) {
+    targetPath = `${__dirname.replace(/\\src|\\lib/g, "")}${targetPath}`;
     let json = Object.fromEntries(getDependenceTreeMap()); //将哈希表解析成json
     return new Promise((resolve, reject) => {
       fs.writeFile(targetPath, JSON.stringify(json), (err: Error) => {
@@ -142,24 +144,24 @@ const saveDependencyTreeJson = (
       });
     });
   } else {
-    let sourcePath = `${__dirname.replace(/\\src|\\lib/g,"")}${"/dist/test.json"}`;
+    let sourcePath = `${__dirname.replace(
+      /\\src|\\lib/g,
+      ""
+    )}${"/dist/test.json"}`;
 
     const sourceFile = path.resolve(sourcePath);
-    const targetFile = path.resolve(targetPath);
+    if (targetPath.startsWith("/")) targetPath = targetPath.slice(1);
 
     return new Promise((resolve, reject) => {
       // 检查源文件的状态
       fs.stat(sourceFile, (error: any, stats: any) => {
-        if (sourceFile === targetFile) {
-          resolve("文件已成功保存");
-        }
         // 判断源文件内容是否为空
         if (error) {
           reject("当前没有数据，请执行analyze命令！");
         } else {
           pipeline(
             fs.createReadStream(sourceFile),
-            fs.createWriteStream(targetFile),
+            fs.createWriteStream(targetPath),
             (error: any) => {
               if (error) {
                 reject("文件保存出错!");
