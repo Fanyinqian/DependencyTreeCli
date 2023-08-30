@@ -16,6 +16,7 @@ const commander = (program: Program) => {
     program.option('-d,--depth [n]').description('限制向下递归分析的层次深度').action(() => {action.depth(process.argv) })
     // 防止下面的 option 覆盖上面的 
     process.argv[2].includes('j') && program.option('-j,--json [file-path]').description('以 JSON 形式存储到用户指定的文件').action(() => {action.saveJSON(process.argv)})
+    process.argv[2].includes('h') && program.option('-j,--json [file-path]').description('以 JSON 形式存储到用户指定的文件').action(() => {action.saveJSON(process.argv)})
   }
 
 }
