@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "lint": "eslint . --fix",
     "preview": "vite preview",
     "prepare": "husky install"
@@ -15,6 +15,7 @@
     "@types/react-router-dom": "^5.1.8",
     "babel-eslint": "^10.1.0",
     "eslint-plugin-react": "^7.33.1",
+    "http-proxy-middleware": "^2.0.6",
     "lint-staged": "^13.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -48,5 +49,6 @@
     "*.{js,jsx,tsx,ts}": [
       "npm run lint"
     ]
-  }
+  },
+  "proxy": "http://localhost:5173"
 }

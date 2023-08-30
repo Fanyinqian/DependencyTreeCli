@@ -1,42 +1,40 @@
 {
-  "name": "dependencytreecli",
-  "version": "1.0.3",
-  "description": "A Tool for Analyzing Package Dependencies ",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "tsc --watch",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix --quiet ./",
-    "prepare": "husky install"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Fanyinqian/DependencyTreeCli.git"
-  },
-  "author": "javaTribe",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Fanyinqian/DependencyTreeCli/issues"
-  },
-  "homepage": "https://github.com/Fanyinqian/DependencyTreeCli#readme",
-  "bin": {
-    "dependency-tree-cli": "./bin/index.js"
-  },
-  "devDependencies": {
-    "@types/node": "^20.4.5",
-    "husky": "^8.0.3"
-  },
-  "dependencies": {
-    "chalk": "^4.1.2",
-    "child_process": "^1.0.2",
-    "commander": "^11.0.0",
-    "dependencytreecli": "^1.0.3",
-    "express": "^4.18.2",
-    "inquirer": "^8.0.0",
-    "node-cache": "^5.1.2",
-    "ora": "^5.4.1",
-    "typescript": "^5.1.6"
-  },
-  "private": false
+    "name": "dependencytreecli",
+    "version": "1.0.3",
+    "description": "A Tool for Analyzing Package Dependencies ",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc",
+        "start": "tsc --watch",
+        "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix --quiet ./",
+        "prepare": "husky install"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Fanyinqian/DependencyTreeCli.git"
+    },
+    "author": "javaTribe",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Fanyinqian/DependencyTreeCli/issues"
+    },
+    "homepage": "https://github.com/Fanyinqian/DependencyTreeCli#readme",
+    "bin": {
+        "dependency-tree-cli": "./bin/index.js"
+    },
+    "devDependencies": {
+        "@types/node": "^20.4.5",
+        "husky": "^8.0.3"
+    },
+    "dependencies": {
+        "chalk": "^4.1.2",
+        "child_process": "^1.0.2",
+        "commander": "^11.0.0",
+        "express": "^4.18.2",
+        "inquirer": "^8.0.0",
+        "ora": "^5.4.1",
+        "typescript": "^5.1.6"
+    },
+    "private": false
 }

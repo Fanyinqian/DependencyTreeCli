@@ -25,15 +25,29 @@
 }
 
 .tooltip-left{
-  text-align: right;
   position: absolute;
-  margin-left: -125px;
-  padding: 20px;
-  margin-top: -10px;
+  top: 50%;
+  left: -20%;
+  transform: translate(-100%, -50%);
+  padding: 15px;
+  border-radius: 4px;
+  text-align: right;
   background-color: #fff;
   box-shadow: 0 0 8px rgba(35,37,42,.14);
-
 }
+
+.rect-tip{
+  padding: 10px 40px;
+  border-radius: 6px;
+  background-color: #e8eaee;
+  margin: 10px 0;
+  cursor: pointer;
+}
+.rect-tip:hover{
+  background-color:#9a9898;
+}
+}
+
 
 .tooltip-left::after {
   content: '';
@@ -43,18 +57,5 @@
   transform: translateY(-50%);
   border: solid transparent;
   border-width: 10px;
-  border-left-color: #948181; /* 右箭头颜色 */
-}
-}
-
-.selectedNode {
-  width: 120px;
-  height: 40px;
-  background-color: blue;
-  border: 3px solid #3e6f81;
-  padding: 2px 3px;
-  border-radius: 2px;
-  line-height: 34px;
-  text-align: center;
-  /* 添加其他样式属性 */
+  border-left-color: #9a9898; /* 右箭头颜色 */
 }

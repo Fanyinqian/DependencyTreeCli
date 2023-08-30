@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import JSON_data from '../public/data1.json';
+import JSON_data from '../public/test.json';
 import G6, { Graph } from '@antv/g6';
 import './Search/index.scss'
 // 引入样式
