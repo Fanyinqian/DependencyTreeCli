@@ -1,9 +1,28 @@
 import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
-import * as path from "path";
-// https://vitejs.dev/config/
+import * as path from "path";
+import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
-  plugins: [reactRefresh()],
+  plugins: [
+    reactRefresh(),
+    // {
+    //   ...visualizer({
+    //     filename: './bundle-visualizer.html',
+    //     gzipSize: true,
+    //     brotliSize: true,
+    //     emitFile: false,
+    //     open:true //如果存在本地服务端口，将在打包后自动展示
+    //   }),
+    //   apply: 'build' // 将插件应用到构建过程
+    // }
+    visualizer({
+      filename: './bundle-visualizer.html',
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+        open:true //如果存在本地服务端口，将在打包后自动展示
+    }),
+  ],
   // 配置路径别名
   resolve: {
     alias: {

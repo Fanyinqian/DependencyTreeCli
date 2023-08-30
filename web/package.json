@@ -37,6 +37,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "husky": "^8.0.3",
     "prettier": "^3.0.1",
+    "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.64.2",
     "style-loader": "^3.3.3",
     "typescript": "^5.0.2",
