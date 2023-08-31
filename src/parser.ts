@@ -45,6 +45,7 @@ const readPackageJson = (filename: string): Promise<packageObj> => {
 /**
  * 构建依赖树哈希表结构
  * @param {string} packName 依赖包名称
+ * @param {number} [depth] 遍历深度
  */
 const buildDependencyMap = async (packName: string, depth?: number) => {
   if (depth != null && depth < 0) return;
@@ -75,7 +76,7 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
 
 /**
  *依赖树解析器
- * @param {number} [depth=1] 层次深度
+ * @param {number} [depth] 层次深度
  */
 const dependencyTreeParser = async (depth: number) => {
   clearDependenceTreeMap();
