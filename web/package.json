@@ -40,6 +40,7 @@
     "prettier": "^3.0.1",
     "sass": "^1.64.2",
     "style-loader": "^3.3.3",
+    "terser": "^5.19.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-plugin-eslint": "^1.8.1"

@@ -14,7 +14,6 @@ const dependencyTreeMap: Map<string, dependencyTree> = new Map<
 interface dependencyTree {
   name: string; //包名
   dependencies: string[]; //生产依赖包数组
-  devDependencies: string[]; //开发依赖包数组
   version: string; //版本
   description: string; //描述
 }
@@ -52,40 +51,26 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
   if (depth != null && depth >= 0) --depth;
   //出现已存在的包时结束递归
   if (dependencyTreeMap.has(packName)) {
-    // console.log("------------------------error--------------------------");
-    // console.log(`已存在包${packName}`);
-    // console.log("------------------------error--------------------------");
     return;
   }
   //获取依赖包文件的数据
   let packageData: packageObj = (await readPackageJson(packName)) as packageObj;
   //如果返回的对象为空则结束
   if (Object.keys(packageData).length == 0) return;
-  // if (packName != PrimaryKey) console.log(`包${packName}解析成功!`);
   //获取依赖包数据的dependencies数组
   let dependencies: string[] = Array.from(
     Object.keys(packageData.dependencies || {})
   );
 
-  //获取依赖包数据的devDependencies数组
-  let devDependencies: string[] = Array.from(
-    Object.keys(packageData.devDependencies || {})
-  );
   //构建哈希表
   dependencyTreeMap.set(packName, {
     name: PrimaryKey == packName ? PrimaryKey : packageData.name,
     version: packageData.version,
     description: packageData.description,
     dependencies: dependencies,
-    devDependencies: devDependencies,
   });
   //遍历dependencies数组进行递归构建
   for (let packName of dependencies) await buildDependencyMap(packName, depth);
-  if (packName == PrimaryKey) {
-    // 遍历devDependencies数组进行递归构建
-    for (let packName of devDependencies)
-      await buildDependencyMap(packName, depth);
-  }
 };
 
 /**
@@ -94,14 +79,11 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
  */
 const dependencyTreeParser = async (depth: number) => {
   clearDependenceTreeMap();
-  // console.log("开始解析依赖包······");
   await buildDependencyMap(PrimaryKey, depth);
-
-  saveDependencyTreeJson("/dist/test", true);
+  await saveDependencyTreeJson("/dist/test", true);
   const staticPath = path.join(__dirname.replace(/\\src|\\lib/g, ""), "dist");
   app.use(express.static(staticPath)).listen(8243, () => {
     exec("start http://127.0.0.1:8243");
-    // console.log("依赖关系图：http://127.0.0.1:8080/index.html");
   });
 };
 
@@ -118,7 +100,6 @@ const getDependenceTreeMap = (): Map<string, dependencyTree> => {
  */
 const clearDependenceTreeMap = () => {
   dependencyTreeMap.clear();
-  // console.log("初始化数据成功！");
 };
 
 /**
