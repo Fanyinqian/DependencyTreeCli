@@ -339,7 +339,7 @@ const Search = ({ graph }: SearchProps) => {
         if (selectedIndex !== -1) {
             const selectedNodeId = searchResults[selectedIndex];
             const node = graph.findById(selectedNodeId);
-            graph.setItemState(node, 'target', true);
+            graph.setItemState(node, 'highlight', true);
 
             if (lastTargetNodeId.current && lastTargetNodeId.current !== selectedNodeId) {
                 const lastNode = graph.findById(lastTargetNodeId.current);
