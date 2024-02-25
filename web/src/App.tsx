@@ -6,8 +6,8 @@ import './App.scss'
 // import G6demo2 from './G6demo2';
 // import G6demo1 from './G6demo';
 // import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import routes from './router/routes';
+import { BrowserRouter as Router } from 'react-router-dom'
+import routes from './router/routes'
 function App() {
   return (
     <>

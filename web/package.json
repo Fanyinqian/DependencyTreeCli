@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@antv/g6": "^4.8.21",
+    "@reduxjs/toolkit": "^2.0.1",
     "@types/react-router-dom": "^5.1.8",
     "babel-eslint": "^10.1.0",
     "eslint-plugin-react": "^7.33.1",
@@ -19,6 +20,7 @@
     "lint-staged": "^13.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-redux": "^9.0.2",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.3.4",
     "relation-graph": "^2.0.25"

@@ -71,7 +71,7 @@ const buildDependencyMap = async (packName: string, depth?: number) => {
     dependencies: dependencies,
   });
   //遍历dependencies数组进行递归构建
-  for (let packName of dependencies) await buildDependencyMap(packName, depth);
+  for await (let packName of dependencies) buildDependencyMap(packName, depth);
 };
 
 /**
