@@ -1,7 +1,7 @@
-const inquirer = require("inquirer");
-const Loading = require("../utils/loading");
+import inquirer from "inquirer";
+import Loading from "../utils/loading";
 // @ts-ignore
-const chalk = require("chalk");
+import chalk from "chalk";
 const HOST = "8243";
 
 /**
@@ -105,4 +105,4 @@ const Action = {
   },
 };
 
-module.exports = Action;
+export default Action;

@@ -1,6 +1,6 @@
-const Chalk = require('chalk')
-const ora = require('ora')
-const parser = require("../parser");
+import Chalk from 'chalk';
+import ora from 'ora';
+import { dependencyTreeParser, saveDependencyTreeJson } from "../parser";
 
 /**
  * 睡觉函数
@@ -12,7 +12,7 @@ const sleep = (delay: number,func: (arg0: any) => void,arg:any) => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             func(arg)
-            // parser.dependencyTreeParser(num);
+            // dependencyTreeParser(num);
             resolve(false)
         }, delay);
     });
@@ -33,11 +33,11 @@ const loading = async (arg:number | string) => {
         let res = null
         // 分析依赖 or 查找深度
         if(typeof arg === 'number'|| typeof arg === 'object'){ 
-            res = await sleep(1500,parser.dependencyTreeParser,arg)
+            res = await sleep(1500,dependencyTreeParser,arg)
             spinner.succeed('Successful！')
         // 保存JSON
         }else{  
-            res = await sleep(1500,parser.saveDependencyTreeJson,arg)
+            res = await sleep(1500,saveDependencyTreeJson,arg)
             spinner.succeed('Save Successful！')
         }
         return res
@@ -46,4 +46,4 @@ const loading = async (arg:number | string) => {
     }
 }
 
-module.exports = loading
+export default loading

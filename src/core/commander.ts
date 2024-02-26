@@ -1,14 +1,11 @@
-const action = require('./action')
-interface Program {
-  command: (arg0: string) => { (): any; new(): any; alias: { (arg0: string): { (): any; new(): any; description: { (arg0: string): { (): any; new(): any; action: { (arg0: any): void; new(): any } }; new(): any } }; new(): any }; description: { (arg0: string): { (): any; new(): any; action: { (arg0: any): void; new(): any } }; new(): any } }; option: (arg0: string) => { (): any; new(): any; description: { (arg0: string): { (): any; new(): any; action: { (arg0: () => void): void; new(): any } }; new(): any } }
-}
-
+import action from './action';
+import { Command } from 'commander'; // ts类型
 /**
  * 定义cli支持的命令
  * @param program 命令行程序对象
  * @description json存储命令还未拆分情况
  */
-const commander = (program: Program) => {
+const commander = (program: Command) => {
   program.command('analyze').alias('ana').description('解析依赖关系').action(action.analyze)
 
   // 检查命令行是否有参数，没有则跳过去执行 program.usage
@@ -20,4 +17,4 @@ const commander = (program: Program) => {
   }
 
 }
-  module.exports = commander
+export default commander

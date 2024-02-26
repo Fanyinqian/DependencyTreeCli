@@ -1,8 +1,8 @@
-const fs = require("fs");
-const { exec } = require("child_process");
-const express = require("express");
-const path = require("path");
-const { pipeline } = require("stream");
+import fs from "fs";
+import { exec } from "child_process";
+import express from "express";
+import path from "path";
+import { pipeline } from "stream";
 const app = express();
 const PrimaryKey: string = "treeRoot"; //依赖树映 射表的主键
 const dependencyTreeMap: Map<string, dependencyTree> = new Map<
@@ -34,7 +34,7 @@ const readPackageJson = (filename: string): Promise<packageObj> => {
   return new Promise((resolve, reject) => {
     //如果文件夹存在就返回文件数据，否则返回空对象
     fs.existsSync(path)
-      ? fs.readFile(path, "utf-8", (err: Error, dataStr: string) => {
+      ? fs.readFile(path, "utf-8", (err: Error | null, dataStr: string) => {
           if (err) reject(err);
           resolve(JSON.parse(dataStr || "{}"));
         })
@@ -120,7 +120,7 @@ const saveDependencyTreeJson = (
     targetPath = `${__dirname.replace(/\\src|\\lib/g, "")}${targetPath}`;
     let json = Object.fromEntries(getDependenceTreeMap()); //将哈希表解析成json
     return new Promise((resolve, reject) => {
-      fs.writeFile(targetPath, JSON.stringify(json), (err: Error) => {
+      fs.writeFile(targetPath, JSON.stringify(json), (err: Error | null) => {
         if (err) reject(err);
         resolve("写入成功");
       });
@@ -159,7 +159,7 @@ const saveDependencyTreeJson = (
 };
 
 //导出模块
-module.exports = {
+export {
   dependencyTreeParser,
   clearDependenceTreeMap,
   getDependenceTreeMap,
